@@ -1,0 +1,81 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// 1. MODEL USER
+// Menyimpan data akun dan profil selera (Taste Profile)
+model User {
+  id           Int       @id @default(autoincrement())
+  username     String    @unique
+  email        String    @unique
+  password     String
+  name         String?   // Nama lengkap (Chef Name)
+  bio          String?   // Bio singkat
+  preferences  String?   // Taste Profile (Vegetarian, Pedas, dll)
+  profileImage String?   // Foto profil user
+  createdAt    DateTime  @default(now())
+  
+  recipes      Recipe[]  // Resep yang dibuat user
+  comments     Comment[] // Komentar yang ditulis user
+  likes        Like[]    // Resep yang disukai/di-bookmark user
+}
+
+// 2. MODEL RECIPE
+// Jantung aplikasi Plate'Q. Disesuaikan dengan mockup Explore.
+model Recipe {
+  id           Int       @id @default(autoincrement())
+  title        String
+  content      String    // Langkah-langkah memasak
+  image        String?   // URL/Nama file foto masakan di folder uploads
+  
+  // Field tambahan agar sesuai Mockup:
+  difficulty   String    @default("Easy")   // Easy, Medium, Hard
+  cookingTime  String    @default("30 min") // Contoh: "45 min"
+  rating       Float     @default(0.0)      // Bintang di mockup
+  reviewsCount Int       @default(0)        // Angka di dalam kurung (128)
+  category     String?   // Contoh: "Healthy", "Indonesian", "Dessert"
+
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  authorId     Int
+  author       User      @relation(fields: [authorId], references: [id])
+  
+  comments     Comment[]
+  likes        Like[]
+}
+
+// 3. MODEL LIKE (BOOKMARK)
+// Biar ikon Love di mockup bisa diklik dan disimpan
+model Like {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  recipeId  Int
+  user      User     @relation(fields: [userId], references: [id])
+  recipe    Recipe   @relation(fields: [recipeId], references: [id])
+
+  @@unique([userId, recipeId]) // Satu user cuma bisa like satu resep sekali
+}
+
+// 4. MODEL COMMENT
+// Mendukung fitur diskusi antar Chef (Chef Community)
+model Comment {
+  id        Int       @id @default(autoincrement())
+  text      String
+  createdAt DateTime  @default(now())
+  
+  userId    Int
+  user      User      @relation(fields: [userId], references: [id])
+
+  recipeId  Int
+  recipe    Recipe    @relation(fields: [recipeId], references: [id])
+
+  // Fitur Balasan Komentar (Nested Replies)
+  parentId  Int?      
+  parent    Comment?  @relation("CommentReplies", fields: [parentId], references: [id])
+  replies   Comment[] @relation("CommentReplies")
+}
