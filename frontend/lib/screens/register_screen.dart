@@ -3,44 +3,42 @@ import '../services/auth_service.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
-
   @override
   State<RegisterScreen> createState() => _RegisterScreenState();
 }
 
 class _RegisterScreenState extends State<RegisterScreen> {
-  final _nameController = TextEditingController();
+  // 1. TAMBAHIN CONTROLLER EMAIL DI SINI
   final _emailController = TextEditingController();
+  final _usernameController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
-
   bool _isLoading = false;
 
-  // --- LOGIKA REGISTER ---
   void _handleRegister() async {
-    if (_nameController.text.isEmpty ||
-        _emailController.text.isEmpty ||
+    // 2. PASTIKAN EMAIL JUGA GAK BOLEH KOSONG
+    if (_emailController.text.isEmpty ||
+        _usernameController.text.isEmpty ||
         _passwordController.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Isi semua datanya dulu ya, Chef!")),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text("Isi formnya dulu bro!")));
       return;
     }
 
     if (_passwordController.text != _confirmPasswordController.text) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("Oops, konfirmasi password-nya nggak sama nih."),
-        ),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text("Password gak cocok bro!")));
       return;
     }
 
     setState(() => _isLoading = true);
 
+    // 3. KIRIM _emailController.text KE BACKEND (Bukan string kosong "" lagi)
     bool success = await AuthService.register(
       _emailController.text,
-      _nameController.text,
+      _usernameController.text,
       _passwordController.text,
     );
 
@@ -49,56 +47,20 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
     if (success) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Akun berhasil dibuat! Silakan Login.")),
+        const SnackBar(
+          content: Text("Berhasil daftar! Silakan Login."),
+          backgroundColor: Colors.green,
+        ),
       );
-      Navigator.pop(context);
+      Navigator.pop(context); // Balik ke halaman login
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text(
-            "Gagal mendaftar. Email atau Username mungkin sudah dipakai.",
-          ),
+          content: Text("Gagal daftar. Email/Username mungkin sudah dipakai."),
+          backgroundColor: Colors.red,
         ),
       );
     }
-  }
-
-  // WIDGET HELPER UNTUK INPUT (BIAR KODE RAPI)
-  Widget _buildTextField({
-    required String label,
-    required String hint,
-    required TextEditingController controller,
-    bool isPassword = false,
-  }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
-        ),
-        const SizedBox(height: 8),
-        TextField(
-          controller: controller,
-          obscureText: isPassword,
-          decoration: InputDecoration(
-            hintText: hint,
-            hintStyle: TextStyle(color: Colors.grey.shade400),
-            filled: true,
-            fillColor: Colors.grey.shade100,
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide.none,
-            ),
-            contentPadding: const EdgeInsets.symmetric(
-              horizontal: 16,
-              vertical: 16,
-            ),
-          ),
-        ),
-        const SizedBox(height: 20),
-      ],
-    );
   }
 
   @override
@@ -106,199 +68,81 @@ class _RegisterScreenState extends State<RegisterScreen> {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        backgroundColor: Colors.white,
         elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black87),
-          onPressed: () => Navigator.pop(context),
-        ),
-        title: const Text(
-          "Create Account",
-          style: TextStyle(
-            color: Colors.black87,
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        centerTitle: true,
+        backgroundColor: Colors.white,
+        iconTheme: const IconThemeData(color: Colors.black),
       ),
       body: SingleChildScrollView(
-        child: Center(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 400),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    "Start Your Culinary\nJourney",
-                    style: TextStyle(
-                      fontSize: 32,
-                      fontWeight: FontWeight.w900,
-                      height: 1.2,
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  Text(
-                    "Discover hand-picked recipes and curated dining experiences tailored for you.",
-                    style: TextStyle(
-                      color: Colors.grey.shade600,
-                      fontSize: 14,
-                      height: 1.5,
-                    ),
-                  ),
-                  const SizedBox(height: 32),
-
-                  _buildTextField(
-                    label: "Full Name",
-                    hint: "Chef Gusteau",
-                    controller: _nameController,
-                  ),
-                  _buildTextField(
-                    label: "Email Address",
-                    hint: "gusteau@curator.com",
-                    controller: _emailController,
-                  ),
-                  _buildTextField(
-                    label: "Password",
-                    hint: "••••••••",
-                    controller: _passwordController,
-                    isPassword: true,
-                  ),
-                  _buildTextField(
-                    label: "Confirm Password",
-                    hint: "••••••••",
-                    controller: _confirmPasswordController,
-                    isPassword: true,
-                  ),
-                  const SizedBox(height: 10),
-
-                  // TOMBOL DAFTAR (POLOS TANPA IKON PANAH)
-                  SizedBox(
-                    width: double.infinity,
-                    height: 54,
-                    child: ElevatedButton(
-                      onPressed: _isLoading ? null : _handleRegister,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor:
-                            Colors.grey.shade800, // Warna gelap tegas
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        elevation: 0,
-                      ),
-                      child: _isLoading
-                          ? const SizedBox(
-                              height: 24,
-                              width: 24,
-                              child: CircularProgressIndicator(
-                                color: Colors.white,
-                                strokeWidth: 2,
-                              ),
-                            )
-                          : const Text(
-                              "Daftar",
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white,
-                              ),
-                            ),
-                    ),
-                  ),
-                  const SizedBox(height: 32),
-
-                  // --- SOCIAL LOGIN ---
-                  Row(
-                    children: [
-                      Expanded(child: Divider(color: Colors.grey.shade300)),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                        child: Text(
-                          "OR CONTINUE WITH",
-                          style: TextStyle(
-                            fontSize: 11,
-                            color: Colors.grey.shade500,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                      Expanded(child: Divider(color: Colors.grey.shade300)),
-                    ],
-                  ),
-                  const SizedBox(height: 24),
-
-                  Row(
-                    children: [
-                      Expanded(
-                        child: OutlinedButton.icon(
-                          onPressed: () {},
-                          icon: const Icon(
-                            Icons.g_mobiledata,
-                            color: Colors.black87,
-                            size: 28,
-                          ),
-                          label: const Text(
-                            "Google",
-                            style: TextStyle(color: Colors.black87),
-                          ),
-                          style: OutlinedButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(vertical: 14),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            side: BorderSide(color: Colors.grey.shade300),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: OutlinedButton.icon(
-                          onPressed: () {},
-                          icon: const Icon(Icons.apple, color: Colors.black87),
-                          label: const Text(
-                            "Apple",
-                            style: TextStyle(color: Colors.black87),
-                          ),
-                          style: OutlinedButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(vertical: 14),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            side: BorderSide(color: Colors.grey.shade300),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 32),
-
-                  // --- FOOTER ---
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        "Already part of the kitchen? ",
-                        style: TextStyle(color: Colors.grey.shade600),
-                      ),
-                      GestureDetector(
-                        onTap: () => Navigator.pop(context),
-                        child: const Text(
-                          "Login",
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            color: Colors.black87,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 40),
-                ],
-              ),
+        padding: const EdgeInsets.all(32),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              "Start Your Culinary\nJourney",
+              style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
             ),
-          ),
+            const SizedBox(height: 10),
+            const Text(
+              "Discover hand-picked recipes and curated dining experiences tailored for you.",
+              style: TextStyle(color: Colors.grey),
+            ),
+            const SizedBox(height: 40),
+
+            // 4. TAMBAHIN KOLOM INPUT EMAIL DI SINI
+            _inputField("Email Address", _emailController),
+            const SizedBox(height: 15),
+
+            _inputField("Username", _usernameController),
+            const SizedBox(height: 15),
+            _inputField("Password", _passwordController, isPass: true),
+            const SizedBox(height: 15),
+            _inputField(
+              "Confirm Password",
+              _confirmPasswordController,
+              isPass: true,
+            ),
+            const SizedBox(height: 40),
+
+            _isLoading
+                ? const Center(
+                    child: CircularProgressIndicator(color: Colors.black),
+                  )
+                : ElevatedButton(
+                    onPressed: _handleRegister,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors
+                          .grey, // Warnanya aku sesuaikan biar nyambung sama tema
+                      minimumSize: const Size(double.infinity, 55),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(30),
+                      ),
+                    ),
+                    child: const Text(
+                      "Daftar",
+                      style: TextStyle(color: Colors.white, fontSize: 18),
+                    ),
+                  ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _inputField(
+    String label,
+    TextEditingController controller, {
+    bool isPass = false,
+  }) {
+    return TextField(
+      controller: controller,
+      obscureText: isPass,
+      decoration: InputDecoration(
+        labelText: label,
+        filled: true,
+        fillColor: Colors.grey, // Warna field-nya dicerahin dikit biar elegan
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(15),
+          borderSide: BorderSide.none,
         ),
       ),
     );

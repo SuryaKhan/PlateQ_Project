@@ -10,15 +10,21 @@ const createRecipe = async (req, res) => {
     // Kalau user nggak upload foto, nilainya jadi null
     const imageName = req.file ? req.file.filename : null;
 
+    // Cek apakah category dikirim sebagai ID
+    let categoryIdToSave = null;
+    if (category && !isNaN(parseInt(category))) {
+      categoryIdToSave = parseInt(category);
+    }
+
     const newRecipe = await prisma.recipe.create({
       data: { 
         title, 
         content, 
         authorId,
-        image: imageName, // <--- Nama file disimpan di kolom image
+        image: imageName,
         difficulty: difficulty || "Easy",
         cookingTime: cookingTime || "30 min",
-        category: category || "General"
+        categoryId: categoryIdToSave // Gunakan relasi Category
       }
     });
 
@@ -29,14 +35,33 @@ const createRecipe = async (req, res) => {
   }
 };
 
-// --- 2. Fungsi Lihat Semua Resep ---
+// --- 2. Fungsi Lihat Semua Resep (Dengan Filter) ---
 const getAllRecipes = async (req, res) => {
   try {
+    const { categoryId, search } = req.query; // Tangkap parameter dari URL
+
+    let filter = {};
+    
+    // Jika ada filter kategori
+    if (categoryId) {
+      filter.categoryId = parseInt(categoryId);
+    }
+
+    // Jika ada pencarian kata kunci di judul atau konten resep
+    if (search) {
+      filter.OR = [
+        { title: { contains: search, mode: 'insensitive' } },
+        { content: { contains: search, mode: 'insensitive' } }
+      ];
+    }
+
     const recipes = await prisma.recipe.findMany({
+      where: filter,
       include: {
         author: {
           select: { username: true, name: true }
-        }
+        },
+        category: true // Ambil detail kategori juga
       },
       orderBy: { createdAt: 'desc' }
     });
@@ -65,6 +90,11 @@ const updateRecipe = async (req, res) => {
     // Cek kalau ada foto baru yang diupload pas edit
     const newImage = req.file ? req.file.filename : existingRecipe.image;
 
+    let categoryIdToSave = existingRecipe.categoryId;
+    if (category && !isNaN(parseInt(category))) {
+      categoryIdToSave = parseInt(category);
+    }
+
     const updatedRecipe = await prisma.recipe.update({
       where: { id: parseInt(id) },
       data: { 
@@ -72,8 +102,8 @@ const updateRecipe = async (req, res) => {
         content, 
         difficulty, 
         cookingTime, 
-        category,
-        image: newImage // <--- Update fotonya
+        categoryId: categoryIdToSave,
+        image: newImage 
       }
     });
 
@@ -105,4 +135,42 @@ const deleteRecipe = async (req, res) => {
   }
 };
 
-module.exports = { createRecipe, getAllRecipes, updateRecipe, deleteRecipe };
+// --- 5. Fungsi Toggle Bookmark (Like) ---
+const toggleBookmark = async (req, res) => {
+  try {
+    const { id } = req.params; // ID resep
+    const userId = req.user.userId;
+
+    const recipeId = parseInt(id);
+
+    // Cek apakah resep ada
+    const recipe = await prisma.recipe.findUnique({ where: { id: recipeId } });
+    if (!recipe) return res.status(404).json({ error: "Resep tidak ditemukan!" });
+
+    // Cek apakah user sudah bookmark
+    const existingLike = await prisma.like.findUnique({
+      where: {
+        userId_recipeId: { userId, recipeId }
+      }
+    });
+
+    if (existingLike) {
+      // Jika sudah ada, hapus bookmark (Unlike)
+      await prisma.like.delete({
+        where: { id: existingLike.id }
+      });
+      res.json({ message: "Bookmark dihapus!", bookmarked: false });
+    } else {
+      // Jika belum ada, tambahkan bookmark (Like)
+      await prisma.like.create({
+        data: { userId, recipeId }
+      });
+      res.json({ message: "Resep dibookmark!", bookmarked: true });
+    }
+  } catch (error) {
+    console.error("❌ ERROR TOGGLE BOOKMARK:", error);
+    res.status(500).json({ error: "Gagal memproses bookmark." });
+  }
+};
+
+module.exports = { createRecipe, getAllRecipes, updateRecipe, deleteRecipe, toggleBookmark };

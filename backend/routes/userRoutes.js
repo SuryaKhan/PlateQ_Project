@@ -6,4 +6,7 @@ const authMiddleware = require('../middleware/authMiddleware'); // Supaya cuma y
 // Update profil (menggunakan PUT karena kita merubah data yang sudah ada)
 router.put('/update-profile', authMiddleware, userController.updateProfile);
 
+// Get profil detail
+router.get('/profile', authMiddleware, userController.getProfile);
+
 module.exports = router;

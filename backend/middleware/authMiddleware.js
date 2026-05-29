@@ -17,7 +17,7 @@ const authenticateToken = (req, res, next) => {
 
   if (!token) return res.status(401).json({ error: "Format token salah!" });
 
-  jwt.verify(token, 'rahasia', (err, user) => {
+  jwt.verify(token, process.env.JWT_SECRET || 'rahasia', (err, user) => {
     if (err) {
       console.log("Gagal karena:", err.message);
       return res.status(403).json({ error: "Token nggak valid!" });

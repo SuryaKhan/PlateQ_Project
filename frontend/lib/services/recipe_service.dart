@@ -1,29 +1,27 @@
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
-import 'package:flutter_secure_storage/flutter_secure_storage.dart'; // <-- Panggil Brankas Besi
-import '../models/recipe_model.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import '../models/recipe_model.dart'; // Panggil cetakan yang tadi dibikin
 
 class RecipeService {
   static const String baseUrl = 'http://localhost:3000/api/recipes';
-
-  // Inisialisasi Brankas
-  static const _storage = FlutterSecureStorage();
 
   // Fungsi buat ngambil semua data resep (GET)
   static Future<List<Recipe>> fetchRecipes() async {
     try {
       // 1. Buka brankas HP buat ngambil Token JWT
-      final token = await _storage.read(key: 'jwt_token');
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('jwt_token');
 
-      // Siapkan headers. Kalau token ada, bawa tokennya.
-      final headers = <String, String>{'Content-Type': 'application/json'};
-      if (token != null) {
-        headers['Authorization'] = 'Bearer $token'; // Ini kunci masuknya!
-      }
-
-      // 2. Tembak API
-      final response = await http.get(Uri.parse(baseUrl), headers: headers);
+      // 2. Tembak API dan bawa Token-nya di bagian "Headers"
+      final response = await http.get(
+        Uri.parse(baseUrl),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token', // Ini kunci masuknya!
+        },
+      );
 
       // 3. Kalau sukses masuk (200 OK), ubah JSON jadi List<Recipe>
       if (response.statusCode == 200) {
@@ -35,7 +33,7 @@ class RecipeService {
         return [];
       }
     } catch (e) {
-      debugPrint("❌ Error Fetch Resep: $e");
+      debugPrint("Error Fetch Resep: $e");
       return [];
     }
   }

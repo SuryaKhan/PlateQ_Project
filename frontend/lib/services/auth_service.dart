@@ -1,14 +1,13 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/foundation.dart';
 
 class AuthService {
+  // Base URL untuk Auth
   static const String authUrl = 'http://localhost:3000/api/auth';
+  // Base URL untuk User Profile
   static const String userUrl = 'http://localhost:3000/api/users';
-
-  // Inisialisasi Brankas
-  static const _storage = FlutterSecureStorage();
 
   // ==========================================
   // 1. FUNGSI REGISTER (DAFTAR)
@@ -58,8 +57,9 @@ class AuthService {
         final data = jsonDecode(response.body);
         String token = data['token'];
 
-        // Simpan token ke brankas lokal (Secure Storage)
-        await _storage.write(key: 'jwt_token', value: token);
+        // Simpan token ke brankas lokal (SharedPreferences)
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString('jwt_token', token);
 
         return true;
       } else {
@@ -75,10 +75,11 @@ class AuthService {
   // ==========================================
   // 3. FUNGSI UPDATE PROFIL (TASTE PROFILE)
   // ==========================================
+  // Dipakai saat klik "Complete Profile" atau "Start Exploring"
   static Future<bool> updateProfile(String name, String bio) async {
     try {
-      // Ambil token dari brankas
-      final token = await _storage.read(key: 'jwt_token');
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('jwt_token');
 
       if (token == null) {
         debugPrint("❌ Token tidak ditemukan! Login dulu bro.");
@@ -89,7 +90,7 @@ class AuthService {
         Uri.parse('$userUrl/update-profile'),
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': 'Bearer $token',
+          'Authorization': 'Bearer $token', // Mengirim tiket masuk ke Backend
         },
         body: jsonEncode({'name': name, 'bio': bio}),
       );
@@ -109,8 +110,8 @@ class AuthService {
   // 4. FUNGSI LOGOUT (KELUAR)
   // ==========================================
   static Future<void> logout() async {
-    // Hapus token dari brankas
-    await _storage.delete(key: 'jwt_token');
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove('jwt_token');
     debugPrint("--- LOGOUT BERHASIL ---");
   }
 }

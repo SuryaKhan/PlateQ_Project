@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const multer = require('multer');
 const path = require('path');
-const { createRecipe, getAllRecipes, updateRecipe, deleteRecipe } = require('../controllers/recipeController');
+const { createRecipe, getAllRecipes, updateRecipe, deleteRecipe, toggleBookmark } = require('../controllers/recipeController');
 const authenticateToken = require('../middleware/authMiddleware');
 
 // --- PENGATURAN PENYIMPANAN GAMBAR ---
@@ -27,5 +27,8 @@ router.post('/', authenticateToken, upload.single('image'), createRecipe);
 
 router.put('/:id', authenticateToken, upload.single('image'), updateRecipe); 
 router.delete('/:id', authenticateToken, deleteRecipe); 
+
+// Bookmark (Like/Unlike)
+router.post('/:id/bookmark', authenticateToken, toggleBookmark);
 
 module.exports = router;

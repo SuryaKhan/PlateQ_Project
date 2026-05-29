@@ -7,6 +7,7 @@ require('dotenv').config();
 const authRoutes = require('./routes/authRoutes');
 const recipeRoutes = require('./routes/recipeRoutes'); 
 const userRoutes = require('./routes/userRoutes'); // <-- JANGAN LUPA INI!
+const adminRoutes = require('./routes/adminRoutes'); // Rute Admin
 
 const app = express();
 
@@ -24,9 +25,10 @@ app.get('/', (req, res) => res.json({ message: "Welcome to API Resep App bro!" }
 app.use('/api/auth', authRoutes);
 app.use('/api/recipes', recipeRoutes);
 app.use('/api/users', userRoutes); // <-- DAFTARKAN DI SINI BRO!
+app.use('/api/admin', adminRoutes); // Daftarkan rute Admin
 
 // 4. Nyalakan Server (HARUS PALING BAWAH)
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`🚀 Server backend udah nyala di http://localhost:${PORT}`);
 });

@@ -6,6 +6,13 @@ datasource db {
   provider = "postgresql"
 }
 
+// Enum Hak Akses
+enum Role {
+  USER
+  ADMIN
+  SUPERADMIN
+}
+
 // 1. MODEL USER
 // Menyimpan data akun dan profil selera (Taste Profile)
 model User {
@@ -17,11 +24,14 @@ model User {
   bio          String?   // Bio singkat
   preferences  String?   // Taste Profile (Vegetarian, Pedas, dll)
   profileImage String?   // Foto profil user
+  phone        String?   // Nomor Telepon
+  role         Role      @default(USER) // Hak akses pengguna
   createdAt    DateTime  @default(now())
   
   recipes      Recipe[]  // Resep yang dibuat user
   comments     Comment[] // Komentar yang ditulis user
   likes        Like[]    // Resep yang disukai/di-bookmark user
+  announcements Announcement[] // Pengumuman yang dibuat oleh Admin/Superadmin
 }
 
 // 2. MODEL RECIPE
@@ -37,7 +47,9 @@ model Recipe {
   cookingTime  String    @default("30 min") // Contoh: "45 min"
   rating       Float     @default(0.0)      // Bintang di mockup
   reviewsCount Int       @default(0)        // Angka di dalam kurung (128)
-  category     String?   // Contoh: "Healthy", "Indonesian", "Dessert"
+  
+  categoryId   Int?
+  category     Category? @relation(fields: [categoryId], references: [id])
 
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
@@ -78,4 +90,26 @@ model Comment {
   parentId  Int?      
   parent    Comment?  @relation("CommentReplies", fields: [parentId], references: [id])
   replies   Comment[] @relation("CommentReplies")
+}
+
+// 5. MODEL CATEGORY
+// Untuk kategori resep yang dinamis (bisa ditambah admin)
+model Category {
+  id        Int      @id @default(autoincrement())
+  name      String   @unique
+  icon      String?  // URL/Nama icon kategori
+  createdAt DateTime @default(now())
+  recipes   Recipe[]
+}
+
+// 6. MODEL ANNOUNCEMENT
+// Untuk informasi/update dari Admin dan Superadmin
+model Announcement {
+  id        Int      @id @default(autoincrement())
+  title     String
+  content   String
+  createdAt DateTime @default(now())
+
+  authorId  Int
+  author    User     @relation(fields: [authorId], references: [id])
 }
