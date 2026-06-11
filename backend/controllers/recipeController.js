@@ -38,9 +38,13 @@ const createRecipe = async (req, res) => {
 // --- 2. Fungsi Lihat Semua Resep (Dengan Filter) ---
 const getAllRecipes = async (req, res) => {
   try {
-    const { categoryId, search } = req.query; // Tangkap parameter dari URL
+    const { categoryId, search, authorId } = req.query; // Tangkap parameter dari URL
 
     let filter = {};
+    
+    if (authorId) {
+      filter.authorId = parseInt(authorId);
+    }
     
     // Jika ada filter kategori
     if (categoryId) {
@@ -59,7 +63,7 @@ const getAllRecipes = async (req, res) => {
       where: filter,
       include: {
         author: {
-          select: { username: true, name: true }
+          select: { username: true, name: true, role: true }
         },
         category: true // Ambil detail kategori juga
       },

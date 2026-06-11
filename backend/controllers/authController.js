@@ -1,6 +1,7 @@
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const prisma = require('../db'); 
+const { sendNewPasswordEmail } = require('../utils/emailService');
 
 // ==========================================
 // 1. FUNGSI DAFTAR (REGISTER)
@@ -55,10 +56,17 @@ const login = async (req, res) => {
   try {
     const { username, password } = req.body;
 
-    // 1. Cari user berdasarkan username
-    const user = await prisma.user.findUnique({ where: { username } });
+    // 1. Cari user berdasarkan username ATAU email
+    const user = await prisma.user.findFirst({ 
+      where: { 
+        OR: [
+          { username: username },
+          { email: username }
+        ]
+      } 
+    });
     if (!user) {
-      return res.status(404).json({ error: "Username nggak ketemu!" });
+      return res.status(404).json({ error: "Username atau Email nggak ketemu!" });
     }
 
     // 2. Cek apakah password-nya cocok
@@ -87,5 +95,87 @@ const login = async (req, res) => {
   }
 };
 
+// ==========================================
+// 3. FUNGSI LUPA PASSWORD (FORGOT PASSWORD)
+// ==========================================
+const forgotPassword = async (req, res) => {
+  try {
+    const { email } = req.body;
+    
+    if (!email) {
+      return res.status(400).json({ error: "Email wajib diisi!" });
+    }
+
+    // Cari user berdasarkan email
+    const user = await prisma.user.findUnique({ where: { email } });
+    if (!user) {
+      return res.status(404).json({ error: "Email tidak terdaftar!" });
+    }
+
+    // Generate password acak 8 karakter
+    const randomPassword = Math.random().toString(36).slice(-8);
+    const hashedPassword = await bcrypt.hash(randomPassword, 10);
+
+    // Update password di database
+    await prisma.user.update({
+      where: { email },
+      data: { password: hashedPassword }
+    });
+
+    // Kirim email
+    const emailSent = await sendNewPasswordEmail(email, randomPassword);
+    
+    if (emailSent) {
+      res.json({ message: "Password baru berhasil dikirim ke email kamu!" });
+    } else {
+      res.status(500).json({ error: "Gagal mengirim email. Cek konfigurasi server." });
+    }
+
+  } catch (error) {
+    console.error("❌ ERROR FORGOT PASSWORD:", error);
+    res.status(500).json({ error: "Terjadi kesalahan pada server." });
+  }
+};
+
+// ==========================================
+// 4. FUNGSI GANTI PASSWORD (CHANGE PASSWORD)
+// ==========================================
+const changePassword = async (req, res) => {
+  try {
+    const { email, oldPassword, newPassword } = req.body;
+
+    if (!email || !oldPassword || !newPassword) {
+      return res.status(400).json({ error: "Email, Password Lama, dan Password Baru wajib diisi!" });
+    }
+
+    // 1. Cari user berdasarkan email
+    const user = await prisma.user.findUnique({ where: { email } });
+    if (!user) {
+      return res.status(404).json({ error: "Email tidak ditemukan!" });
+    }
+
+    // 2. Cek apakah password lama yang dimasukkan benar
+    const isOldPasswordCorrect = await bcrypt.compare(oldPassword, user.password);
+    if (!isOldPasswordCorrect) {
+      return res.status(401).json({ error: "Password lama salah!" });
+    }
+
+    // 3. Hash password baru
+    const hashedNewPassword = await bcrypt.hash(newPassword, 10);
+
+    // 4. Simpan ke database
+    await prisma.user.update({
+      where: { email },
+      data: { password: hashedNewPassword }
+    });
+
+    res.json({ message: "Password berhasil diubah!" });
+
+  } catch (error) {
+    console.error("❌ ERROR CHANGE PASSWORD:", error);
+    res.status(500).json({ error: "Terjadi kesalahan pada server." });
+  }
+};
+
 // Export biar bisa dipanggil sama authRoutes.js
-module.exports = { register, login };
+module.exports = { register, login, forgotPassword, changePassword };

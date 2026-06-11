@@ -1,17 +1,34 @@
 class Recipe {
-  final dynamic id;
+  final int id;
   final String title;
-  final String description;
-  // Nanti bisa ditambah: ingredients, steps, imageUrl, dll sesuai database kamu
+  final String content;
+  final String difficulty;
+  final String cookingTime;
+  final String authorName;
+  final String authorRole;
+  final String? image;
 
-  Recipe({required this.id, required this.title, required this.description});
+  Recipe({
+    required this.id, 
+    required this.title, 
+    required this.content,
+    required this.difficulty,
+    required this.cookingTime,
+    required this.authorName,
+    required this.authorRole,
+    this.image,
+  });
 
-  // Fungsi andalan buat ngubah JSON dari backend jadi Objek Dart
   factory Recipe.fromJson(Map<String, dynamic> json) {
     return Recipe(
       id: json['id'],
-      title: json['title'] ?? 'Tanpa Judul', // Kasih default kalau kosong
-      description: json['description'] ?? 'Tidak ada deskripsi',
+      title: json['title'] ?? 'Tanpa Judul',
+      content: json['content'] ?? 'Tidak ada deskripsi',
+      difficulty: json['difficulty'] ?? 'Easy',
+      cookingTime: json['cookingTime'] ?? '30 min',
+      image: json['image'],
+      authorName: json['author']?['name'] ?? json['author']?['username'] ?? 'Unknown',
+      authorRole: json['author']?['role'] ?? 'USER',
     );
   }
 }

@@ -1,3 +1,4 @@
+require('dotenv').config();
 const { register, login } = require('./controllers/authController');
 
 const mockReq = (body) => ({ body });
@@ -9,14 +10,10 @@ const mockRes = () => {
 };
 
 async function test() {
-    console.log("Testing Register...");
-    const req1 = mockReq({ username: 'testuser', email: 'test@example.com', password: 'password123', name: 'Test User' });
-    const res1 = mockRes();
-    await register(req1, res1);
-    console.log("Register Result:", res1.statusCode, res1.data);
-
+    require('dotenv').config();
+    console.log("DB URL IS: ", process.env.DATABASE_URL);
     console.log("\nTesting Login...");
-    const req2 = mockReq({ username: 'testuser', password: 'password123' });
+    const req2 = mockReq({ username: 'superadmin', password: 'admin123' });
     const res2 = mockRes();
     await login(req2, res2);
     console.log("Login Result:", res2.statusCode, res2.data);
