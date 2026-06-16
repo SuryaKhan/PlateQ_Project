@@ -246,18 +246,20 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
+    bool isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FB),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          icon: Icon(Icons.arrow_back, color: Theme.of(context).textTheme.bodyLarge?.color),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text(
+        title: Text(
           "Edit Profile",
-          style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
+          style: TextStyle(color: Theme.of(context).textTheme.bodyLarge?.color, fontWeight: FontWeight.bold),
         ),
         centerTitle: false,
       ),
@@ -311,10 +313,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 Container(
                   padding: const EdgeInsets.all(24),
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: Theme.of(context).colorScheme.surface,
                     borderRadius: BorderRadius.circular(20),
                     boxShadow: [
-                      BoxShadow(color: Colors.black.withAlpha(5), blurRadius: 20, offset: const Offset(0, 10)),
+                      BoxShadow(color: Colors.black.withAlpha(isDark ? 50 : 5), blurRadius: 20, offset: const Offset(0, 10)),
                     ],
                   ),
                   child: Column(
@@ -333,10 +335,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                         width: double.infinity,
                         child: OutlinedButton.icon(
                           onPressed: _showChangePasswordDialog,
-                          icon: const Icon(Icons.lock_reset, color: Color(0xFF1E293B)),
-                          label: const Text("Ubah Password Saat Ini", style: TextStyle(color: Color(0xFF1E293B), fontWeight: FontWeight.bold)),
+                          icon: Icon(Icons.lock_reset, color: isDark ? Colors.white : const Color(0xFF1E293B)),
+                          label: Text("Ubah Password Saat Ini", style: TextStyle(color: isDark ? Colors.white : const Color(0xFF1E293B), fontWeight: FontWeight.bold)),
                           style: OutlinedButton.styleFrom(
-                            side: const BorderSide(color: Color(0xFF1E293B)),
+                            side: BorderSide(color: isDark ? Colors.white : const Color(0xFF1E293B)),
                             padding: const EdgeInsets.symmetric(vertical: 12),
                             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
                           ),
@@ -369,7 +371,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 // Batal
                 TextButton(
                   onPressed: () => Navigator.pop(context),
-                  child: const Text("Batal", style: TextStyle(color: Colors.black, fontSize: 16, fontWeight: FontWeight.bold)),
+                  child: Text("Batal", style: TextStyle(color: Theme.of(context).textTheme.bodyLarge?.color, fontSize: 16, fontWeight: FontWeight.bold)),
                 )
               ],
             ),
@@ -389,10 +391,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         TextField(
           controller: controller,
           maxLines: maxLines,
-          style: const TextStyle(fontWeight: FontWeight.w500),
+          style: TextStyle(fontWeight: FontWeight.w500, color: Theme.of(context).textTheme.bodyLarge?.color),
           decoration: InputDecoration(
             filled: true,
-            fillColor: const Color(0xFFF8F9FB),
+            fillColor: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF2D3748) : const Color(0xFFF8F9FB),
             prefixIcon: maxLines == 1 ? Icon(icon, color: Colors.grey) : null,
             contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
             border: OutlineInputBorder(
