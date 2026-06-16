@@ -19,9 +19,9 @@ Karena aplikasi ini *online*, backend harus dihidupkan 24 jam agar aplikasi di H
    - **Build Command:** `npm install`
    - **Start Command:** `node index.js`
 4. Di bagian **Environment Variables**, tambahkan:
-   - `DATABASE_URL` = `postgresql://postgres.kglkoqgndmtghhuibgmu:plateq-db%40%23%24@aws-0-ap-southeast-1.pooler.supabase.com:6543/postgres?pgbouncer=true`
-   - `DIRECT_URL` = `postgresql://postgres.kglkoqgndmtghhuibgmu:plateq-db%40%23%24@aws-0-ap-southeast-1.pooler.supabase.com:5432/postgres`
-   - `JWT_SECRET` = `rahasia_plateq_2026`
+   - `DATABASE_URL` = `<ISI_DENGAN_DATABASE_URL_SUPABASE_KAMU>`
+   - `DIRECT_URL` = `<ISI_DENGAN_DIRECT_URL_SUPABASE_KAMU>`
+   - `JWT_SECRET` = `<ISI_DENGAN_KODE_RAHASIA_BEBAS>`
 5. Klik **Create** dan tunggu hingga statusnya berwarna hijau (*Live*). Jangan lupa *copy* URL publik yang muncul (misal: `https://plateq-api.onrender.com`).
 
 ### 2. Menyambungkan Frontend & Membuat APK
