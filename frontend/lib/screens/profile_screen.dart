@@ -323,6 +323,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Widget _buildTabContent(List<Recipe> myRecipes, List<Recipe> favoriteRecipes) {
+    int columns = MediaQuery.of(context).size.width > 1200 ? 5 : (MediaQuery.of(context).size.width > 800 ? 4 : (MediaQuery.of(context).size.width > 600 ? 3 : 2));
+
     if (_selectedTabIndex == 0) {
       // Tab Resepku (Grid)
       return SliverPadding(
@@ -330,8 +332,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
         sliver: myRecipes.isEmpty 
           ? const SliverToBoxAdapter(child: Center(child: Text("Belum ada resep yang dibuat.")))
           : SliverGrid(
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: columns,
                 crossAxisSpacing: 16,
                 mainAxisSpacing: 16,
                 childAspectRatio: 0.8,
@@ -351,8 +353,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
         sliver: favoriteRecipes.isEmpty 
           ? const SliverToBoxAdapter(child: Center(child: Text("Belum ada resep favorit.")))
           : SliverGrid(
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: columns,
                 crossAxisSpacing: 16,
                 mainAxisSpacing: 16,
                 childAspectRatio: 0.8,
