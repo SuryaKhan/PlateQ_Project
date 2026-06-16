@@ -273,13 +273,11 @@ class _HomeScreenState extends State<HomeScreen> {
                       return const Center(child: Text("Belum ada resep di kategori ini."));
                     }
 
-                    int columns = MediaQuery.of(context).size.width > 1200 ? 5 : (MediaQuery.of(context).size.width > 800 ? 4 : (MediaQuery.of(context).size.width > 600 ? 3 : 2));
-
                     return RefreshIndicator(
                       onRefresh: () async { _fetchRecipes(); },
                       child: GridView.builder(
-                        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: columns,
+                        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 2,
                           crossAxisSpacing: 16,
                           mainAxisSpacing: 16,
                           childAspectRatio: 0.75, // Mengatur proporsi tinggi vs lebar kartu
