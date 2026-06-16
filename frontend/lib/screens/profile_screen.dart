@@ -474,8 +474,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
   // Desain Card Grid yang seragam untuk Tab Resepku dan Favorit
   Widget _buildGridCard(Recipe recipe, {required bool showFavoriteIcon}) {
     return GestureDetector(
-      onTap: () {
-        Navigator.push(context, MaterialPageRoute(builder: (context) => RecipeDetailScreen(recipe: recipe)));
+      onTap: () async {
+        await Navigator.push(context, MaterialPageRoute(builder: (context) => RecipeDetailScreen(recipe: recipe)));
+        _loadProfile();
       },
       child: Container(
         decoration: BoxDecoration(
