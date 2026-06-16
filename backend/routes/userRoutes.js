@@ -23,6 +23,9 @@ router.put('/upload-profile-image', authMiddleware, upload.single('profileImage'
 // Get profil detail
 router.get('/profile', authMiddleware, userController.getProfile);
 
+// Get profil publik user lain
+router.get('/public/:id', authMiddleware, userController.getPublicProfile);
+
 // Search Users
 router.get('/search', userController.searchUsers);
 

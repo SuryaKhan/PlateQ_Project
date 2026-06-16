@@ -107,6 +107,44 @@ exports.getProfile = async (req, res) => {
   }
 };
 
+// 2.5 GET PUBLIC PROFILE
+exports.getPublicProfile = async (req, res) => {
+  try {
+    const targetUserId = parseInt(req.params.id);
+
+    const userProfile = await prisma.user.findUnique({
+      where: { id: targetUserId },
+      include: {
+        recipes: true,
+        _count: {
+          select: { followers: true, following: true }
+        }
+      }
+    });
+
+    if (!userProfile) {
+      return res.status(404).json({ error: "Pengguna tidak ditemukan!" });
+    }
+
+    const responseData = {
+      id: userProfile.id,
+      username: userProfile.username,
+      name: userProfile.name,
+      bio: userProfile.bio,
+      profileImage: userProfile.profileImage,
+      role: userProfile.role,
+      recipes: userProfile.recipes,
+      followersCount: userProfile._count.followers,
+      followingCount: userProfile._count.following
+    };
+
+    res.json(responseData);
+  } catch (error) {
+    console.error("❌ ERROR GET PUBLIC PROFILE:", error);
+    res.status(500).json({ error: "Gagal mengambil data profil publik." });
+  }
+};
+
 exports.uploadProfileImage = async (req, res) => {
   try {
     const userId = req.user.userId;
