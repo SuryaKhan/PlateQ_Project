@@ -20,7 +20,6 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
   String? _currentUsername;
   
   List<Map<String, dynamic>> _comments = [];
-  bool _isLoadingComments = true;
 
   @override
   void initState() {
@@ -34,7 +33,6 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
     if (mounted) {
       setState(() {
         _comments = comments;
-        _isLoadingComments = false;
       });
     }
   }
