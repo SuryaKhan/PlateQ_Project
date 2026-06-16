@@ -173,6 +173,8 @@ exports.searchUsers = async (req, res) => {
       return res.json([]);
     }
 
+    const currentUserId = req.user.userId;
+
     const users = await prisma.user.findMany({
       where: {
         OR: [
@@ -188,12 +190,24 @@ exports.searchUsers = async (req, res) => {
         role: true,
         _count: {
           select: { followers: true }
+        },
+        followers: {
+          where: { followerId: currentUserId },
+          select: { id: true }
         }
       },
       take: 20
     });
 
-    res.json(users);
+    const formattedUsers = users.map(user => {
+      const { followers, ...rest } = user;
+      return {
+        ...rest,
+        isFollowing: followers.length > 0
+      };
+    });
+
+    res.json(formattedUsers);
   } catch (error) {
     console.error("❌ ERROR SEARCH USERS:", error);
     res.status(500).json({ error: "Gagal mencari pengguna." });

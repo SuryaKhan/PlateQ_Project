@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 import 'dart:async';
 import '../models/recipe_model.dart';
 import 'home_screen.dart'; // Untuk menggunakan RecipeGridCard
+import '../services/social_service.dart';
 
 class SearchScreen extends StatefulWidget {
   const SearchScreen({super.key});
@@ -27,16 +29,25 @@ class _SearchScreenState extends State<SearchScreen> {
   bool _hasMore = true;
   bool _isFetchingMore = false;
   final ScrollController _scrollController = ScrollController();
+  String? _token;
 
   @override
   void initState() {
     super.initState();
+    _loadToken();
     _scrollController.addListener(() {
       if (_scrollController.position.pixels == _scrollController.position.maxScrollExtent) {
         if (!_isFetchingMore && _hasMore && _searchQuery.isNotEmpty) {
           _fetchMore();
         }
       }
+    });
+  }
+
+  Future<void> _loadToken() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _token = prefs.getString('token');
     });
   }
 
@@ -77,7 +88,10 @@ class _SearchScreenState extends State<SearchScreen> {
         }
       } else {
         // Search Users
-        final res = await http.get(Uri.parse('http://192.168.101.127:3000/api/users/search?q=$query'));
+        final res = await http.get(
+          Uri.parse('http://192.168.101.127:3000/api/users/search?q=$query'),
+          headers: {'Authorization': 'Bearer $_token'}, // Butuh token untuk isFollowing
+        );
         if (res.statusCode == 200) {
           final List list = jsonDecode(res.body);
           setState(() {
@@ -352,18 +366,32 @@ class _SearchScreenState extends State<SearchScreen> {
                       ),
                       subtitle: Text("@${user['username']}"),
                       trailing: ElevatedButton(
-                        onPressed: () {
-                          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                            content: Text("Berhasil mengikuti pengguna!"),
-                            backgroundColor: Colors.green,
-                          ));
+                        onPressed: () async {
+                          try {
+                            await SocialService.toggleFollow(user['id']);
+                            setState(() {
+                              _userResults[index]['isFollowing'] = !(_userResults[index]['isFollowing'] ?? false);
+                            });
+                            if (!context.mounted) return;
+                            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                              content: Text(_userResults[index]['isFollowing'] ? "Berhasil mengikuti pengguna!" : "Berhenti mengikuti pengguna."),
+                              backgroundColor: _userResults[index]['isFollowing'] ? Colors.green : Colors.orange,
+                            ));
+                          } catch (e) {
+                            if (!context.mounted) return;
+                            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                              content: Text("Gagal memproses permintaan."),
+                              backgroundColor: Colors.red,
+                            ));
+                          }
                         },
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF1E293B),
-                          foregroundColor: Colors.white,
+                          backgroundColor: (user['isFollowing'] ?? false) ? Colors.grey.shade300 : const Color(0xFF1E293B),
+                          foregroundColor: (user['isFollowing'] ?? false) ? Colors.black : Colors.white,
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                          elevation: 0,
                         ),
-                        child: const Text("Ikuti"),
+                        child: Text((user['isFollowing'] ?? false) ? "Diikuti" : "Ikuti"),
                       ),
                     );
                   },

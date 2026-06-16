@@ -24,7 +24,7 @@ router.put('/upload-profile-image', authMiddleware, upload.single('profileImage'
 router.get('/profile', authMiddleware, userController.getProfile);
 
 // Search Users
-router.get('/search', userController.searchUsers);
+router.get('/search', authMiddleware, userController.searchUsers);
 
 // Ubah Password
 router.put('/change-password', authMiddleware, userController.changePassword);
