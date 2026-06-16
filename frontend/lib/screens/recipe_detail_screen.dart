@@ -338,7 +338,7 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                         const SizedBox(height: 32),
 
                         // Cooking Steps
-                        const Text("Cooking Steps", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
+                        Text("Cara Memasak", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onSurface)),
                         const SizedBox(height: 16),
                         ...steps.asMap().entries.map((entry) {
                           return Padding(
@@ -352,13 +352,19 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            const Text("Cooksnaps", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
+                            Row(
+                              children: [
+                                Text("Foto Recook", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onSurface)),
+                                const SizedBox(width: 4),
+                                const Icon(Icons.info_outline, size: 14, color: Colors.grey),
+                              ],
+                            ),
                             ElevatedButton.icon(
                               onPressed: () {
-                                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Membuka Kamera untuk Cooksnap...")));
+                                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Segera Hadir: Fitur Upload Foto Recook!")));
                               },
                               icon: const Icon(Icons.camera_alt, size: 16),
-                              label: const Text("I Made This!"),
+                              label: const Text("Aku Buat Ini!"),
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: const Color(0xFFD4AF37), // Emas elegan
                                 foregroundColor: Colors.white,
