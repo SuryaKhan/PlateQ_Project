@@ -185,9 +185,9 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                 // Card Konten Putih (Overlap ke atas gambar)
                 Container(
                   margin: const EdgeInsets.only(top: 280),
-                  decoration: const BoxDecoration(
-                    color: Color(0xFFF8F9FB),
-                    borderRadius: BorderRadius.only(
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.surface,
+                    borderRadius: const BorderRadius.only(
                       topLeft: Radius.circular(30),
                       topRight: Radius.circular(30),
                     ),
@@ -205,10 +205,10 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                             children: [
                               Text(
                                 widget.recipe.title,
-                                style: const TextStyle(
+                                style: TextStyle(
                                   fontSize: 24,
                                   fontWeight: FontWeight.bold,
-                                  color: Color(0xFF1E293B),
+                                  color: Theme.of(context).colorScheme.onSurface,
                                   height: 1.2,
                                 ),
                               ),
@@ -413,7 +413,7 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                         const SizedBox(height: 32),
 
                         // Komentar
-                        const Text("Komentar", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
+                        Text("Komentar", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onSurface)),
                         const SizedBox(height: 16),
                         ..._comments.reversed.map((c) {
                           final user = c['user'] ?? {};
@@ -451,7 +451,8 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                         color: _isFavorited ? Colors.redAccent : Colors.white,
                       ),
                       onPressed: () async {
-                        final success = await RecipeService.toggleBookmark(widget.recipe.id);
+                        await RecipeService.toggleBookmark(widget.recipe.id);
+                        if (!mounted) return;
                         setState(() {
                           _isFavorited = !_isFavorited;
                         });
@@ -534,7 +535,7 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).colorScheme.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(15),
         boxShadow: [BoxShadow(color: Colors.black.withAlpha(5), blurRadius: 10, offset: const Offset(0, 5))],
       ),
@@ -547,7 +548,7 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(label, style: const TextStyle(fontSize: 10, color: Colors.grey, fontWeight: FontWeight.bold)),
-                Text(value, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Color(0xFF1E293B)), maxLines: 1, overflow: TextOverflow.ellipsis),
+                Text(value, style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onSurface), maxLines: 1, overflow: TextOverflow.ellipsis),
               ],
             ),
           )
@@ -562,7 +563,7 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(name, style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
+          Text(name, style: TextStyle(fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onSurface)),
           Text(amount, style: const TextStyle(color: Colors.grey)),
         ],
       ),
@@ -584,7 +585,7 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(title, style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF1E293B), fontSize: 16)),
+              Text(title, style: TextStyle(fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onSurface, fontSize: 16)),
               const SizedBox(height: 4),
               Text(description, style: const TextStyle(color: Colors.grey, height: 1.5)),
             ],
@@ -606,13 +607,13 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
             children: [
               Row(
                 children: [
-                  Text(name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                  Text(name, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Theme.of(context).colorScheme.onSurface)),
                   const SizedBox(width: 8),
                   Text(time, style: const TextStyle(color: Colors.grey, fontSize: 11)),
                 ],
               ),
               const SizedBox(height: 4),
-              Text(comment, style: const TextStyle(color: Colors.grey, fontSize: 13, height: 1.4)),
+              Text(comment, style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withAlpha(200), fontSize: 14, height: 1.4)),
               const SizedBox(height: 4),
               GestureDetector(
                 onTap: () {
