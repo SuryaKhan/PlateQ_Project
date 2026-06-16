@@ -22,7 +22,8 @@ class SocialService {
     if (response.statusCode == 200 || response.statusCode == 201) {
       return jsonDecode(response.body);
     } else {
-      throw Exception('Failed to toggle follow');
+      final body = jsonDecode(response.body);
+      throw Exception(body['error'] ?? 'Failed to toggle follow');
     }
   }
 }

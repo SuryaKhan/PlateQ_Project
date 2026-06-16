@@ -383,8 +383,12 @@ class _SearchScreenState extends State<SearchScreen> {
                             ));
                           } catch (e) {
                             if (!context.mounted) return;
-                            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                              content: Text("Gagal memproses permintaan."),
+                            String errorMessage = "Gagal memproses permintaan.";
+                            if (e.toString().contains('Exception:')) {
+                              errorMessage = e.toString().split('Exception: ')[1];
+                            }
+                            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                              content: Text(errorMessage),
                               backgroundColor: Colors.red,
                             ));
                           }
