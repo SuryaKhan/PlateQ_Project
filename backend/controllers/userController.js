@@ -1,5 +1,5 @@
 const prisma = require('../db');
-const bcrypt = require('bcryptjs');
+const bcrypt = require('bcrypt');
 
 // 1. UPDATE PROFILE
 exports.updateProfile = async (req, res) => {
