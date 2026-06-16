@@ -60,13 +60,29 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
     final parentId = _replyingToCommentId;
 
     setState(() {
-      _comments.insert(0, {
-        'id': 0,
+      final newComment = {
+        'id': 0, // ID sementara
         'user': {'name': _currentUsername ?? 'Kamu'},
         'text': text,
         'createdAt': 'Baru saja',
         'replies': []
-      });
+      };
+
+      if (parentId != null) {
+        // Cari parent comment dan masukkan ke replies-nya
+        final parentIndex = _comments.indexWhere((c) => c['id'] == parentId);
+        if (parentIndex != -1) {
+          final parent = _comments[parentIndex];
+          final replies = List<Map<String, dynamic>>.from(parent['replies'] ?? []);
+          replies.add(newComment);
+          _comments[parentIndex] = {...parent, 'replies': replies};
+        } else {
+          _comments.insert(0, newComment);
+        }
+      } else {
+        _comments.insert(0, newComment);
+      }
+
       _replyingToCommentId = null;
       _replyingToUsername = null;
     });
@@ -471,7 +487,7 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                               ),
                               if (replies.isNotEmpty)
                                 Padding(
-                                  padding: const EdgeInsets.only(left: 40.0, bottom: 8.0),
+                                  padding: const EdgeInsets.only(left: 44.0, bottom: 8.0),
                                   child: Column(
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: replies.map((r) {
@@ -482,7 +498,7 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                                       final rTime = rTimeStr.length > 10 ? rTimeStr.substring(0, 10) : 'Baru saja';
                                       final rId = r['id'] as int? ?? 0;
                                       return Padding(
-                                        padding: const EdgeInsets.only(bottom: 16.0),
+                                        padding: const EdgeInsets.only(bottom: 12.0),
                                         child: _buildCommentRow(rId, rName, rTime, rText, isReply: true),
                                       );
                                     }).toList(),
