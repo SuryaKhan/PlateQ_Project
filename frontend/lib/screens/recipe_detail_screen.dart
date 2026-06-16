@@ -18,6 +18,7 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
   final TextEditingController _commentController = TextEditingController();
   final FocusNode _commentFocusNode = FocusNode();
   String? _currentUsername;
+  bool _isFavorited = false;
   
   List<Map<String, dynamic>> _comments = [];
 
@@ -414,7 +415,7 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                         // Komentar
                         const Text("Komentar", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
                         const SizedBox(height: 16),
-                        ..._comments.map((c) {
+                        ..._comments.reversed.map((c) {
                           final user = c['user'] ?? {};
                           final name = user['name'] ?? 'Pengguna';
                           final text = c['text'] ?? '';
@@ -445,9 +446,20 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                       ],
                     ),
                     child: IconButton(
-                      icon: const Icon(Icons.favorite_border, color: Colors.white),
-                      onPressed: () {
-                        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Ditambahkan ke Favorit!")));
+                      icon: Icon(
+                        _isFavorited ? Icons.favorite : Icons.favorite_border,
+                        color: _isFavorited ? Colors.redAccent : Colors.white,
+                      ),
+                      onPressed: () async {
+                        final success = await RecipeService.toggleBookmark(widget.recipe.id);
+                        setState(() {
+                          _isFavorited = !_isFavorited;
+                        });
+                        if (mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text(_isFavorited ? "Ditambahkan ke Favorit!" : "Dihapus dari Favorit"))
+                          );
+                        }
                       },
                     ),
                   ),
