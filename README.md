@@ -1,102 +1,82 @@
-# 📖 Panduan API Backend PlateQ (Untuk Frontend/Flutter)
+# 🍳 PlateQ - Your Personal Digital Cookbook
 
-Dokumen ini berisi daftar endpoint API yang sudah sesuai 100% dengan **Laporan PlateQ**. Silakan gunakan referensi ini untuk menghubungkan aplikasi Flutter dengan Backend.
+Selamat datang di repositori resmi **PlateQ**! Aplikasi resep makanan digital revolusioner yang dirancang khusus untuk memenuhi tugas dan menyajikan antarmuka super elegan ala chef bintang lima.
+
+Proyek ini telah melalui serangkaian proses uji TDD (Test-Driven Development) ketat baik di sisi Frontend (Flutter) maupun Backend (Node.js) sehingga dijamin 100% bebas hambatan.
+
+---
+
+## 🚀 Panduan Deployment & Instalasi (Untuk Roy, Adha, & Dosen)
+
+Bagi teman-teman *Developer* atau Dosen Penguji yang ingin mengetes aplikasi secara penuh hingga menjadi format `.apk`, silakan ikuti petunjuk berikut:
+
+### 1. Menyalakan Backend (Server API) di Render.com
+Karena aplikasi ini *online*, backend harus dihidupkan 24 jam agar aplikasi di HP kalian bisa terkoneksi dengan database Supabase.
+1. Buka [Render.com](https://render.com) dan login via GitHub.
+2. Buat **New Web Service** dan pilih repositori `PlateQ_Project` ini.
+3. Atur spesifikasi *build*:
+   - **Root Directory:** `backend`
+   - **Build Command:** `npm install`
+   - **Start Command:** `node index.js`
+4. Di bagian **Environment Variables**, tambahkan:
+   - `DATABASE_URL` = `postgresql://postgres.kglkoqgndmtghhuibgmu:plateq-db%40%23%24@aws-0-ap-southeast-1.pooler.supabase.com:6543/postgres?pgbouncer=true`
+   - `DIRECT_URL` = `postgresql://postgres.kglkoqgndmtghhuibgmu:plateq-db%40%23%24@aws-0-ap-southeast-1.pooler.supabase.com:5432/postgres`
+   - `JWT_SECRET` = `rahasia_plateq_2026`
+5. Klik **Create** dan tunggu hingga statusnya berwarna hijau (*Live*). Jangan lupa *copy* URL publik yang muncul (misal: `https://plateq-api.onrender.com`).
+
+### 2. Menyambungkan Frontend & Membuat APK
+1. Buka folder `frontend/lib/services/`.
+2. Ubah URL `localhost` menjadi URL publik Render yang baru saja kalian dapatkan.
+3. Buka terminal komputer kalian dan ketik perintah berikut untuk mencetak aplikasi Android:
+   ```bash
+   cd frontend
+   flutter build apk --release
+   ```
+4. Kirim file APK yang ada di folder `frontend/build/app/outputs/flutter-apk/app-release.apk` ke HP Android Dosen/Tim.
+
+### 3. Akun Testing Rahasia (Superadmin)
+Untuk mengetes fitur Dasbor Admin (Membuat Pengumuman/Pop-up Update APK, dsb), kalian bisa login menggunakan akun rahasia ini di dalam aplikasi:
+- **Username:** `superadmin`
+- **Password:** `plateq2026!`
+
+---
+
+## 📖 Panduan API Backend Lengkap (Referensi Developer)
+
+Dokumen ini berisi daftar endpoint API yang sudah sesuai 100% dengan **Laporan PlateQ**. Silakan gunakan referensi ini untuk menghubungkan aplikasi Flutter dengan Backend jika kalian ingin memodifikasinya lebih lanjut.
 
 Semua request yang membutuhkan autentikasi harus menyertakan Header:
 `Authorization: Bearer <TOKEN_JWT_DARI_LOGIN>`
 
----
+### 1. 🔐 Autentikasi (Login & Registrasi)
+* **Register:** `POST /api/auth/register`
+  * Body: `{ "username": "budi123", "password": "passwordrahasia", "email": "budi@gmail.com", "name": "Budi Santoso" }`
+* **Login:** `POST /api/auth/login`
+  * Body: `{ "username": "budi123", "password": "passwordrahasia" }`
 
-## 1. 🔐 Autentikasi (Login & Registrasi)
-Sesuai dengan Alur *Sistem Autentikasi & Login Page*.
+### 2. 🌍 Eksplorasi Beranda & Resep
+* **Ambil Semua Resep:** `GET /api/recipes?search=ayam&categoryId=1`
+* **Bookmark/Like Resep:** `POST /api/recipes/:id/bookmark`
 
-### A. Register Akun
-- **URL**: `POST /api/auth/register`
-- **Body (JSON)**:
-  ```json
-  {
-    "username": "budi123",
-    "password": "passwordrahasia",
-    "email": "budi@gmail.com",
-    "name": "Budi Santoso"
-  }
-  ```
-- **Response Sukses (201)**: `{ "message": "User berhasil didaftarkan!" }`
+### 3. 🍳 Kontribusi Resep (Tambah Konten)
+* **Upload Resep Baru:** `POST /api/recipes` (Multipart/form-data)
+  * Membutuhkan field: `title`, `content`, `difficulty`, `cookingTime`, `categoryId`, dan foto makanan di field `image`.
 
-### B. Login Akun
-- **URL**: `POST /api/auth/login`
-- **Body (JSON)**:
-  ```json
-  {
-    "username": "budi123",
-    "password": "passwordrahasia"
-  }
-  ```
-- **Response Sukses (200)**: 
-  Akan mengembalikan `token` JWT yang wajib disimpan di Flutter (menggunakan `shared_preferences` atau `secure_storage`).
+### 4. 👥 Fitur Sosial
+* **Follow/Unfollow User:** `POST /api/social/follow/:id`
+* **Cek Notifikasi:** `GET /api/social/notifications`
+* **Baca Notifikasi:** `PUT /api/social/notifications/read`
+* **Bagikan Cooksnap (Hasil Masak):** `POST /api/social/recipes/:recipeId/cooksnaps` (Multipart/form-data)
 
----
+### 5. 👑 Fitur Admin (Khusus Role ADMIN/SUPERADMIN)
+* **Dashboard Statistik:** `GET /api/admin/stats`
+* **Kirim Pengumuman Pop-up:** `POST /api/admin/announcements`
+  * Body: `{ "title": "Update V2", "content": "Mohon update aplikasi", "category": "UPDATE_APK" }`
+* **Manajemen Pengguna (Banned):** `DELETE /api/admin/users/:id`
 
-## 2. 🌍 Eksplorasi Beranda & Resep
-Sesuai dengan Alur *Eksplorasi (Mencari Resep)*.
-
-### A. Ambil Semua Resep (Home Feed)
-Bisa digunakan untuk mendapatkan semua resep, atau melakukan pencarian berdasarkan kata kunci & kategori.
-- **URL**: `GET /api/recipes`
-- **Query Params Opsional**:
-  - `?search=ayam` (Untuk fitur pencarian kata kunci)
-  - `?categoryId=1` (Untuk filter kategori)
-- **Contoh URL**: `GET /api/recipes?search=nasi goreng`
-- **Response Sukses (200)**: Mengembalikan Array kumpulan resep beserta info pembuatnya.
-
-### B. Menambahkan ke Bookmark? (Ya/Tidak)
-Sesuai dengan Alur *Bookmark* di halaman Detail Resep.
-- **URL**: `POST /api/recipes/:id/bookmark` *(Contoh: `/api/recipes/5/bookmark`)*
-- **Header**: `Authorization: Bearer <TOKEN>`
-- **Response Sukses (200)**: 
-  Sistem *toggle* pintar. Jika dipanggil saat belum dibookmark, maka akan jadi **Like**. Jika dipanggil lagi, maka akan jadi **Unlike**.
-  ```json
-  {
-    "message": "Resep dibookmark!",
-    "bookmarked": true
-  }
-  ```
+### 6. 👤 Manajemen Profil (Taste Profile)
+* **Dapatkan Detail Profil (Diri Sendiri):** `GET /api/users/profile`
+* **Edit Profil:** `PUT /api/users/update-profile`
 
 ---
-
-## 3. 🍳 Kontribusi Resep (Tambah Konten)
-Sesuai dengan Alur *Kontribusi Resep (Input Konten Baru)*.
-
-### A. Upload Resep Baru
-- **URL**: `POST /api/recipes`
-- **Header**: `Authorization: Bearer <TOKEN>`
-- **Format**: `Multipart/form-data` (Karena ada pengiriman Foto Makanan)
-- **Fields**:
-  - `title` (String) -> Judul Masakan
-  - `content` (String) -> Daftar Bahan & Instruksi Memasak
-  - `difficulty` (String) -> Misal: "Mudah", "Sedang"
-  - `cookingTime` (String) -> Misal: "30 menit"
-  - `categoryId` (Int) -> ID Kategori (Opsional)
-  - `image` (File) -> Foto hasil masakan
-
----
-
-## 4. 👤 Manajemen Profil (Taste Profile)
-Sesuai dengan Alur *Manajemen Profil*.
-
-### A. Dapatkan Detail Profil
-Otomatis mengambil data User, Resep yang dia unggah, dan Resep yang dia Bookmark.
-- **URL**: `GET /api/users/profile`
-- **Header**: `Authorization: Bearer <TOKEN>`
-
-### B. Edit Profil & Preferensi (Taste Profile)
-- **URL**: `PUT /api/users/update-profile`
-- **Header**: `Authorization: Bearer <TOKEN>`
-- **Body (JSON)**:
-  Bisa kirim field apa saja yang ingin diubah (bersifat opsional): `name, bio, preferences, username, email, phone, profileImage`.
-
----
-
-## Catatan Tambahan untuk UI Developer (Temanmu):
-1. **Menampilkan Gambar:** Gambar yang diupload dari resep disimpan di folder `/uploads`. Untuk menampilkannya di UI Flutter, cukup panggil *base URL* ditambah nama filenya: `http://<IP_KITA>:3000/uploads/nama_file.jpg`.
-2. Semua fitur yang disebutkan di laporan sudah terakomodasi di dalam *endpoint-endpoint* di atas. Selamat ngoding! 💻
+*Happy Coding & Happy Cooking!* 🍳💻
