@@ -3,23 +3,24 @@ const prisma = require('../db');
 // --- 1. Fungsi Posting Resep (Sekarang Simpan Nama Foto) ---
 const createRecipe = async (req, res) => {
   try {
-    const { title, content, difficulty, cookingTime, category } = req.body;
+    const { title, content, difficulty, cookingTime, category, categoryId } = req.body;
     const authorId = req.user.userId; 
 
     // Ambil nama file unik yang dibuat Multer
     // Kalau user nggak upload foto, nilainya jadi null
     const imageName = req.file ? req.file.filename : null;
 
-    // Cek apakah category dikirim sebagai ID
+    // Cek apakah category atau categoryId dikirim
     let categoryIdToSave = null;
-    if (category && !isNaN(parseInt(category))) {
-      categoryIdToSave = parseInt(category);
+    let inputCat = categoryId || category;
+    if (inputCat && !isNaN(parseInt(inputCat))) {
+      categoryIdToSave = parseInt(inputCat);
     }
 
     const newRecipe = await prisma.recipe.create({
       data: { 
-        title, 
-        content, 
+        title: title || "Resep Tanpa Judul", 
+        content: content || "{}", 
         authorId,
         image: imageName,
         difficulty: difficulty || "Easy",
@@ -38,7 +39,7 @@ const createRecipe = async (req, res) => {
 // --- 2. Fungsi Lihat Semua Resep (Dengan Filter) ---
 const getAllRecipes = async (req, res) => {
   try {
-    const { categoryId, search, authorId } = req.query; // Tangkap parameter dari URL
+    const { categoryId, search, authorId, page, limit } = req.query; // Tangkap parameter dari URL
 
     let filter = {};
     
@@ -59,13 +60,20 @@ const getAllRecipes = async (req, res) => {
       ];
     }
 
+    const pageNum = parseInt(page) || 1;
+    const takeNum = parseInt(limit) || 10;
+    const skipNum = (pageNum - 1) * takeNum;
+
     const recipes = await prisma.recipe.findMany({
       where: filter,
+      skip: skipNum,
+      take: takeNum,
       include: {
         author: {
-          select: { username: true, name: true, role: true }
+          select: { username: true, name: true, role: true, profileImage: true }
         },
-        category: true // Ambil detail kategori juga
+        category: true, // Ambil detail kategori juga
+        _count: { select: { likes: true, comments: true } }
       },
       orderBy: { createdAt: 'desc' }
     });

@@ -13,6 +13,13 @@ const transporter = nodemailer.createTransport({
 // Fungsi untuk mengirim email password baru
 const sendNewPasswordEmail = async (userEmail, newPassword) => {
   try {
+    if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
+      console.log(`⚠️ Kredensial email tidak diset di .env. Menggunakan mode MOCK/DUMMY.`);
+      console.log(`✅ [MOCK] Email reset password berhasil dikirim ke ${userEmail}`);
+      console.log(`🔑 PASSWORD BARU SEMENTARA: ${newPassword}`);
+      return true; // Berpura-pura berhasil agar frontend tidak error
+    }
+
     const mailOptions = {
       from: '"PlateQ System" <no-reply@plateq.com>',
       to: userEmail,

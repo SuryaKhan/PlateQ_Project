@@ -7,6 +7,7 @@ class Recipe {
   final String authorName;
   final String authorRole;
   final String? image;
+  final String? categoryName;
 
   Recipe({
     required this.id, 
@@ -17,6 +18,7 @@ class Recipe {
     required this.authorName,
     required this.authorRole,
     this.image,
+    this.categoryName,
   });
 
   factory Recipe.fromJson(Map<String, dynamic> json) {
@@ -29,6 +31,7 @@ class Recipe {
       image: json['image'],
       authorName: json['author']?['name'] ?? json['author']?['username'] ?? 'Unknown',
       authorRole: json['author']?['role'] ?? 'USER',
+      categoryName: json['category']?['name'],
     );
   }
 }

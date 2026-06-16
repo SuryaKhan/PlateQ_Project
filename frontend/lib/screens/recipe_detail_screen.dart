@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'dart:convert';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../models/recipe_model.dart';
+import 'edit_recipe_screen.dart';
 
 class RecipeDetailScreen extends StatefulWidget {
   final Recipe recipe;
@@ -13,12 +15,27 @@ class RecipeDetailScreen extends StatefulWidget {
 
 class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
   final TextEditingController _commentController = TextEditingController();
+  final FocusNode _commentFocusNode = FocusNode();
+  String? _currentUsername;
   
   // State for dynamic comments
   final List<Map<String, String>> _comments = [
     {"name": "Budi Santoso", "time": "2 hari yang lalu", "text": "Resepnya mantap! Wangi banget karena rempahnya kerasa. Keluarga pada suka."},
     {"name": "Siti Aminah", "time": "1 hari yang lalu", "text": "Wah, setuju banget! Kemarin baru coba juga, bumbunya pas di lidah."},
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadCurrentUser();
+  }
+
+  Future<void> _loadCurrentUser() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _currentUsername = prefs.getString('username');
+    });
+  }
 
   void _addComment() {
     if (_commentController.text.trim().isEmpty) return;
@@ -92,6 +109,7 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                     ),
                     child: TextField(
                       controller: _commentController,
+                      focusNode: _commentFocusNode,
                       decoration: const InputDecoration(
                         hintText: "Tulis komentar...",
                         hintStyle: TextStyle(color: Colors.grey, fontSize: 14),
@@ -132,7 +150,7 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                       ? Hero(
                           tag: 'recipe-image-${widget.recipe.id}',
                           child: Image.network(
-                            'http://192.168.1.5:3000/uploads/${widget.recipe.image}',
+                            'http://192.168.101.127:3000/uploads/${widget.recipe.image}',
                             fit: BoxFit.cover,
                             errorBuilder: (context, error, stackTrace) => const Icon(Icons.broken_image, color: Colors.grey, size: 60),
                           ),
@@ -252,6 +270,70 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                         }),
                         const SizedBox(height: 32),
 
+                        // Cooksnaps (I Made This!)
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            const Text("Cooksnaps", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
+                            ElevatedButton.icon(
+                              onPressed: () {
+                                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Membuka Kamera untuk Cooksnap...")));
+                              },
+                              icon: const Icon(Icons.camera_alt, size: 16),
+                              label: const Text("I Made This!"),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: const Color(0xFFD4AF37), // Emas elegan
+                                foregroundColor: Colors.white,
+                                elevation: 0,
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 16),
+                        SizedBox(
+                          height: 120,
+                          child: ListView.builder(
+                            scrollDirection: Axis.horizontal,
+                            itemCount: 3, // Dummy
+                            itemBuilder: (context, index) {
+                              return Container(
+                                width: 120,
+                                margin: const EdgeInsets.only(right: 12),
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(15),
+                                  color: Colors.grey.shade300,
+                                  border: Border.all(color: Colors.white, width: 2),
+                                  boxShadow: [BoxShadow(color: Colors.black.withAlpha(10), blurRadius: 5)],
+                                ),
+                                child: Stack(
+                                  children: [
+                                    ClipRRect(
+                                      borderRadius: BorderRadius.circular(13),
+                                      child: Image.network(
+                                        'https://picsum.photos/200?random=$index', // Dummy gambar acak
+                                        fit: BoxFit.cover,
+                                        width: double.infinity,
+                                        height: double.infinity,
+                                      ),
+                                    ),
+                                    const Positioned(
+                                      bottom: 8,
+                                      left: 8,
+                                      child: CircleAvatar(
+                                        radius: 12,
+                                        backgroundColor: Colors.white,
+                                        child: Icon(Icons.person, size: 16, color: Colors.grey),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              );
+                            },
+                          ),
+                        ),
+                        const SizedBox(height: 32),
+
                         // Komentar
                         const Text("Komentar", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
                         const SizedBox(height: 16),
@@ -323,6 +405,24 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
+                    if (_currentUsername != null && widget.recipe.authorName == _currentUsername)
+                      Container(
+                        decoration: BoxDecoration(
+                          color: Colors.white.withAlpha(220),
+                          shape: BoxShape.circle,
+                        ),
+                        child: IconButton(
+                          icon: const Icon(Icons.edit, color: Colors.black),
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => EditRecipeScreen(recipe: widget.recipe),
+                              ),
+                            );
+                          },
+                        ),
+                      ),
                   ],
                 ),
               ),
@@ -417,12 +517,20 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
               const SizedBox(height: 4),
               Text(comment, style: const TextStyle(color: Colors.grey, fontSize: 13, height: 1.4)),
               const SizedBox(height: 4),
-              Row(
-                children: [
-                  const Icon(Icons.reply, size: 14, color: Colors.grey),
-                  const SizedBox(width: 4),
-                  const Text("Balas", style: TextStyle(color: Colors.grey, fontSize: 12)),
-                ],
+              GestureDetector(
+                onTap: () {
+                  setState(() {
+                    _commentController.text = "@$name ";
+                  });
+                  _commentFocusNode.requestFocus();
+                },
+                child: Row(
+                  children: [
+                    const Icon(Icons.reply, size: 14, color: Colors.grey),
+                    const SizedBox(width: 4),
+                    const Text("Balas", style: TextStyle(color: Colors.grey, fontSize: 12, fontWeight: FontWeight.bold)),
+                  ],
+                ),
               )
             ],
           ),

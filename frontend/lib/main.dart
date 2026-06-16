@@ -37,17 +37,22 @@ class PlateQApp extends StatelessWidget {
           ),
           darkTheme: ThemeData(
             brightness: Brightness.dark,
-            scaffoldBackgroundColor: const Color(0xFF0F172A), // Navy Dark Background
-            primaryColor: const Color(0xFF1E293B),
+            scaffoldBackgroundColor: const Color(0xFF121212), // Premium Dark (OLED style)
+            primaryColor: const Color(0xFFD4AF37), // Elegant Gold
             colorScheme: const ColorScheme.dark(
-              primary: Color(0xFF1E293B),
-              secondary: Color(0xFFB48A36), // Warna emas untuk tombol/aksen
-              surface: Color(0xFF1E293B), // Card background di Dark Mode
+              primary: Color(0xFFD4AF37),
+              secondary: Color(0xFFB48A36),
+              surface: Color(0xFF1E1E1E), // Elegant Dark Card
             ),
             appBarTheme: const AppBarTheme(
-              backgroundColor: Color(0xFF0F172A),
+              backgroundColor: Color(0xFF121212),
               foregroundColor: Colors.white,
               elevation: 0,
+            ),
+            bottomNavigationBarTheme: const BottomNavigationBarThemeData(
+              backgroundColor: Color(0xFF1E1E1E),
+              selectedItemColor: Color(0xFFD4AF37), // Emas untuk menu aktif
+              unselectedItemColor: Colors.grey,
             ),
             useMaterial3: false,
           ),

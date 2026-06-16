@@ -5,7 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../models/recipe_model.dart'; // Panggil cetakan yang tadi dibikin
 
 class RecipeService {
-  static const String baseUrl = 'http://192.168.1.5:3000/api/recipes';
+  static const String baseUrl = 'http://192.168.101.127:3000/api/recipes';
 
   // Fungsi buat ngambil semua data resep (GET)
   static Future<List<Recipe>> fetchRecipes({int? authorId}) async {
@@ -82,6 +82,46 @@ class RecipeService {
       }
     } catch (e) {
       debugPrint("Error Create Resep: $e");
+      return false;
+    }
+  }
+
+  // Fungsi buat edit resep (PUT)
+  static Future<bool> updateRecipe({
+    required int id,
+    required String title,
+    required String content,
+    required int categoryId,
+    required String difficulty,
+    required String cookingTime,
+    String? imagePath,
+  }) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('jwt_token');
+
+      var request = http.MultipartRequest('PUT', Uri.parse('$baseUrl/$id'));
+      request.headers['Authorization'] = 'Bearer $token';
+
+      request.fields['title'] = title;
+      request.fields['content'] = content;
+      request.fields['categoryId'] = categoryId.toString();
+      request.fields['difficulty'] = difficulty;
+      request.fields['cookingTime'] = cookingTime;
+
+      if (imagePath != null && imagePath.isNotEmpty) {
+        request.files.add(await http.MultipartFile.fromPath('image', imagePath));
+      }
+
+      var response = await request.send();
+      if (response.statusCode == 200) {
+        return true;
+      } else {
+        debugPrint("Gagal update resep. Status: ${response.statusCode}");
+        return false;
+      }
+    } catch (e) {
+      debugPrint("Error Update Resep: $e");
       return false;
     }
   }

@@ -50,7 +50,7 @@ class _SplashScreenState extends State<SplashScreen> {
           children: [
             // Logo Container
             Container(
-              padding: const EdgeInsets.all(30),
+              padding: const EdgeInsets.all(5),
               decoration: const BoxDecoration(
                 color: Colors.white,
                 shape: BoxShape.circle,
@@ -62,11 +62,8 @@ class _SplashScreenState extends State<SplashScreen> {
                   ),
                 ],
               ),
-              child: const Column(
-                children: [
-                  // Ikon pisau dan garpu
-                  Icon(Icons.restaurant, size: 60, color: Color(0xFF1E293B)),
-                ],
+              child: ClipOval(
+                child: Image.asset('assets/images/LogoPlateQ.png', width: 120, height: 120, fit: BoxFit.cover),
               ),
             ),
             const SizedBox(height: 30),
@@ -85,7 +82,7 @@ class _SplashScreenState extends State<SplashScreen> {
 
             // Subtitle
             const Text(
-              "ARTISANAL RECIPES & FLAVORS",
+              "RESEP & CITA RASA NUSANTARA",
               style: TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.bold,
@@ -114,7 +111,7 @@ class _SplashScreenState extends State<SplashScreen> {
       bottomNavigationBar: const Padding(
         padding: EdgeInsets.all(24.0),
         child: Text(
-          "THE CULINARY CURATOR",
+          "KARYA KULINER ANAK BANGSA",
           textAlign: TextAlign.center,
           style: TextStyle(
             fontSize: 11,

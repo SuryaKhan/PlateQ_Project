@@ -8,6 +8,7 @@ const authRoutes = require('./routes/authRoutes');
 const recipeRoutes = require('./routes/recipeRoutes'); 
 const userRoutes = require('./routes/userRoutes'); // <-- JANGAN LUPA INI!
 const adminRoutes = require('./routes/adminRoutes'); // Rute Admin
+const socialRoutes = require('./routes/socialRoutes'); // Phase 7: Social Features
 
 const app = express();
 
@@ -26,9 +27,14 @@ app.use('/api/auth', authRoutes);
 app.use('/api/recipes', recipeRoutes);
 app.use('/api/users', userRoutes); // <-- DAFTARKAN DI SINI BRO!
 app.use('/api/admin', adminRoutes); // Daftarkan rute Admin
+app.use('/api/social', socialRoutes); // Phase 7: Rute Sosial
 
 // 4. Nyalakan Server (HARUS PALING BAWAH)
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(`🚀 Server backend udah nyala di http://localhost:${PORT}`);
-});
+if (require.main === module) {
+  const PORT = process.env.PORT || 3000;
+  app.listen(PORT, () => {
+    console.log(`🚀 Server backend udah nyala di http://localhost:${PORT}`);
+  });
+}
+
+module.exports = app;

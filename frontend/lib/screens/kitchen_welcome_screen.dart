@@ -40,13 +40,28 @@ class KitchenWelcomeScreen extends StatelessWidget {
               const SizedBox(height: 20),
 
               // Image
-              ClipRRect(
-                borderRadius: BorderRadius.circular(20),
-                child: Image.network(
-                  'https://images.unsplash.com/photo-1556910103-1c02745a872f?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.0.3', // Kitchen image placeholder
-                  height: 200,
-                  width: double.infinity,
-                  fit: BoxFit.cover,
+              Container(
+                height: 200,
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(20),
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFF94A3B8), Color(0xFF1E293B)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withAlpha(20),
+                      blurRadius: 15,
+                      offset: const Offset(0, 8),
+                    ),
+                  ],
+                ),
+                child: const Icon(
+                  Icons.soup_kitchen,
+                  size: 80,
+                  color: Colors.white,
                 ),
               ),
               const SizedBox(height: 30),

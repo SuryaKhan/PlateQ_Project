@@ -1,9 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:async';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 import '../services/recipe_service.dart';
 import '../models/recipe_model.dart';
-import 'search_screen.dart';
+
 import '../screens/notification_screen.dart';
 import '../theme/theme_manager.dart';
+import '../widgets/update_dialog.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -16,11 +21,113 @@ class _HomeScreenState extends State<HomeScreen> {
   late Future<List<Recipe>> _recipesFuture;
   int _selectedCategoryIndex = 0;
   final List<String> _categories = ['Semua', 'Nasi', 'Mie', 'Minuman'];
+  bool _hasUnreadNotifications = false;
+  Timer? _pollingTimer;
+  int _lastNotificationCount = 0;
 
   @override
   void initState() {
     super.initState();
     _fetchRecipes();
+    _checkNotificationsLocal();
+    _checkNotificationsFromServer(); // Fetch pertama kali
+    
+    // Polling tiap 5 detik untuk mensimulasikan Push Notification (Pop-up)
+    _pollingTimer = Timer.periodic(const Duration(seconds: 5), (timer) {
+      _checkNotificationsFromServer();
+    });
+  }
+
+  @override
+  void dispose() {
+    _pollingTimer?.cancel();
+    super.dispose();
+  }
+
+  Future<void> _checkNotificationsLocal() async {
+    final prefs = await SharedPreferences.getInstance();
+    if (mounted) {
+      setState(() {
+        _hasUnreadNotifications = prefs.getBool('has_unread_notifications') ?? false;
+      });
+    }
+  }
+
+  Future<void> _checkNotificationsFromServer() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('jwt_token') ?? '';
+      if (token.isEmpty) return;
+
+      final response = await http.get(
+        Uri.parse('http://192.168.101.127:3000/api/social/notifications'),
+        headers: {'Authorization': 'Bearer $token'}
+      );
+
+      if (response.statusCode == 200) {
+        final List<dynamic> notifs = jsonDecode(response.body);
+        bool hasUnread = notifs.any((n) => n['isRead'] == false);
+        
+        if (mounted) {
+          setState(() {
+            _hasUnreadNotifications = hasUnread;
+          });
+        }
+        await prefs.setBool('has_unread_notifications', hasUnread);
+
+        // Jika jumlah notif bertambah dari sebelumnya, berarti ada notif baru masuk!
+        if (notifs.length > _lastNotificationCount && _lastNotificationCount != 0) {
+          final newNotif = notifs.first; // Notifikasi terbaru (desc)
+          if (mounted && newNotif['isRead'] == false) {
+            final String messageText = newNotif['message'] ?? 'Ada pemberitahuan baru!';
+            
+            // Cek jika ini adalah pengumuman Update APK
+            if (messageText.contains('[UPDATE APK]')) {
+              showDialog(
+                context: context,
+                builder: (context) => const UpdateDialog(),
+              );
+            } else {
+              // Tampilkan Pop-Up Dialog Biasa
+              String titleStr = "Pemberitahuan Baru";
+              if (newNotif['type'] == 'SUPERADMIN_ANNOUNCEMENT') {
+                titleStr = "📢 Pengumuman Penting!";
+              } else if (newNotif['type'] == 'ADMIN_ANNOUNCEMENT' || newNotif['type'] == 'ANNOUNCEMENT') {
+                titleStr = "ℹ️ Pengumuman";
+              }
+
+              showDialog(
+                context: context,
+                builder: (context) => AlertDialog(
+                  title: Text(titleStr, style: const TextStyle(fontWeight: FontWeight.bold)),
+                  content: Text(messageText.replaceAll('[INFO]', '').replaceAll('[EVENT]', '').trim()),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(context),
+                      child: const Text("Tutup"),
+                    ),
+                    ElevatedButton(
+                      style: ElevatedButton.styleFrom(backgroundColor: Theme.of(context).colorScheme.primary),
+                      onPressed: () {
+                        Navigator.pop(context);
+                        Navigator.push(context, MaterialPageRoute(builder: (context) => const NotificationScreen())).then((_) {
+                          _checkNotificationsFromServer();
+                        });
+                      },
+                      child: const Text("Lihat Notifikasi", style: TextStyle(color: Colors.white)),
+                    ),
+                  ],
+                )
+              );
+            }
+          }
+        }
+        _lastNotificationCount = notifs.length;
+      }
+    } catch (e) {
+      debugPrint("Polling error: $e");
+    }
   }
 
   void _fetchRecipes() {
@@ -46,13 +153,13 @@ class _HomeScreenState extends State<HomeScreen> {
                 children: [
                   Container(
                     decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                      color: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF1E1E1E) : Theme.of(context).colorScheme.surfaceContainerHighest,
                       shape: BoxShape.circle,
                     ),
                     child: IconButton(
                       icon: Icon(
                         ThemeManager.isDark ? Icons.light_mode : Icons.dark_mode_outlined,
-                        color: Theme.of(context).colorScheme.primary,
+                        color: Theme.of(context).brightness == Brightness.dark ? const Color(0xFFD4AF37) : Theme.of(context).colorScheme.primary,
                         size: 20,
                       ),
                       onPressed: () {
@@ -77,12 +184,14 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                         child: IconButton(
                           icon: const Icon(Icons.notifications_none, color: Colors.black54),
-                          onPressed: () {
-                            Navigator.push(context, MaterialPageRoute(builder: (context) => const NotificationScreen()));
+                          onPressed: () async {
+                            await Navigator.push(context, MaterialPageRoute(builder: (context) => const NotificationScreen()));
+                            _checkNotificationsFromServer();
                           },
                         ),
                       ),
-                      Positioned(
+                      if (_hasUnreadNotifications)
+                        Positioned(
                         top: 8,
                         right: 10,
                         child: Container(
@@ -100,43 +209,7 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
               const SizedBox(height: 24),
 
-              // 2. Search Bar
-              GestureDetector(
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => const SearchScreen()),
-                  );
-                },
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.surface,
-                    borderRadius: BorderRadius.circular(15),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withAlpha(5),
-                        blurRadius: 10,
-                        offset: const Offset(0, 5),
-                      ),
-                    ],
-                  ),
-                  child: TextField(
-                    enabled: false, // Matikan input karena diklik navigasi
-                    decoration: InputDecoration(
-                      hintText: 'Mau masak apa hari ini?',
-                      hintStyle: const TextStyle(color: Colors.grey),
-                      prefixIcon: const Icon(Icons.search, color: Colors.grey),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(15),
-                        borderSide: BorderSide.none,
-                      ),
-                      filled: true,
-                      fillColor: Theme.of(context).colorScheme.surface,
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 24),
+
 
               // 3. Categories Row
               SizedBox(
@@ -164,7 +237,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           child: Text(
                             _categories[index],
                             style: TextStyle(
-                              color: isSelected ? Colors.white : Colors.black54,
+                              color: isSelected ? Colors.white : (Theme.of(context).brightness == Brightness.dark ? Colors.white70 : Colors.black54),
                               fontWeight: FontWeight.w600,
                             ),
                           ),
@@ -254,7 +327,7 @@ class RecipeGridCard extends StatelessWidget {
                         ? Hero(
                             tag: 'recipe-image-${recipe.id}',
                             child: Image.network(
-                              'http://192.168.1.5:3000/uploads/${recipe.image}',
+                              'http://192.168.101.127:3000/uploads/${recipe.image}',
                               fit: BoxFit.cover,
                               errorBuilder: (context, error, stackTrace) => const Icon(Icons.broken_image, color: Colors.grey, size: 40),
                             ),

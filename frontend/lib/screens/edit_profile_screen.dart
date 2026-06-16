@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 import '../services/auth_service.dart';
 
 class EditProfileScreen extends StatefulWidget {
@@ -13,6 +16,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   final _usernameController = TextEditingController();
   final _bioController = TextEditingController();
   final _emailController = TextEditingController();
+  String? _profileImage;
   
   bool _isLoading = true;
   bool _isSaving = false;
@@ -31,6 +35,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         _usernameController.text = data['username'] ?? '';
         _bioController.text = data['bio'] ?? '';
         _emailController.text = data['email'] ?? '';
+        _profileImage = data['profileImage'];
         _isLoading = false;
       });
     } else {
@@ -41,6 +46,50 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text("Gagal memuat data profil saat ini.")),
         );
+      }
+    }
+  }
+
+  Future<void> _pickAndUploadImage() async {
+    final picker = ImagePicker();
+    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+
+    if (pickedFile != null) {
+      setState(() => _isLoading = true);
+      try {
+        final prefs = await SharedPreferences.getInstance();
+        final token = prefs.getString('jwt_token');
+
+        var request = http.MultipartRequest(
+          'PUT',
+          Uri.parse('http://192.168.101.127:3000/api/users/upload-profile-image'),
+        );
+        request.headers['Authorization'] = 'Bearer $token';
+
+        request.files.add(await http.MultipartFile.fromPath(
+          'profileImage',
+          pickedFile.path,
+        ));
+
+        var streamedResponse = await request.send();
+        var response = await http.Response.fromStream(streamedResponse);
+
+        if (response.statusCode == 200) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Foto profil berhasil diperbarui!")));
+            _loadCurrentProfile(); // Reload to get the new image URL
+          }
+        } else {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Gagal mengupload foto.")));
+          }
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Error: $e")));
+        }
+      } finally {
+        if (mounted) setState(() => _isLoading = false);
       }
     }
   }
@@ -99,36 +148,67 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 // Foto Profil Placeholder
-                Stack(
-                  alignment: Alignment.bottomRight,
-                  children: [
-                    CircleAvatar(
-                      radius: 50,
-                      backgroundColor: Colors.grey.shade300,
-                      child: const Icon(Icons.person, size: 50, color: Colors.grey),
-                    ),
-                    Container(
-                      padding: const EdgeInsets.all(6),
-                      decoration: const BoxDecoration(
-                        color: Color(0xFF1E293B),
-                        shape: BoxShape.circle,
+                GestureDetector(
+                  onTap: _pickAndUploadImage,
+                  child: Stack(
+                    alignment: Alignment.bottomRight,
+                    children: [
+                      Container(
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          border: Border.all(color: Colors.white, width: 4),
+                          boxShadow: [BoxShadow(color: Colors.black.withAlpha(20), blurRadius: 10)],
+                        ),
+                        child: CircleAvatar(
+                          radius: 50,
+                          backgroundColor: Colors.grey.shade300,
+                          backgroundImage: _profileImage != null 
+                              ? NetworkImage('http://192.168.101.127:3000/uploads/$_profileImage') 
+                              : null,
+                          child: _profileImage == null 
+                              ? const Icon(Icons.person, size: 50, color: Colors.grey) 
+                              : null,
+                        ),
                       ),
-                      child: const Icon(Icons.camera_alt, color: Colors.white, size: 16),
-                    )
-                  ],
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFD4AF37), // Gold premium color
+                          shape: BoxShape.circle,
+                          border: Border.all(color: Colors.white, width: 2),
+                        ),
+                        child: const Icon(Icons.camera_alt, color: Colors.white, size: 16),
+                      )
+                    ],
+                  ),
                 ),
                 const SizedBox(height: 10),
-                const Text("Ganti Foto Profil", style: TextStyle(fontWeight: FontWeight.bold)),
+                const Text("Ganti Foto Profil", style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFFD4AF37))),
                 const SizedBox(height: 30),
 
                 // Form Fields
-                _buildTextField("Nama", _nameController),
-                const SizedBox(height: 20),
-                _buildTextField("Username", _usernameController),
-                const SizedBox(height: 20),
-                _buildTextField("Bio", _bioController, maxLines: 3),
-                const SizedBox(height: 20),
-                _buildTextField("Email Address", _emailController),
+                Container(
+                  padding: const EdgeInsets.all(24),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(20),
+                    boxShadow: [
+                      BoxShadow(color: Colors.black.withAlpha(5), blurRadius: 20, offset: const Offset(0, 10)),
+                    ],
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildPremiumTextField("Nama Lengkap", _nameController, Icons.person_outline),
+                      const SizedBox(height: 20),
+                      _buildPremiumTextField("Username", _usernameController, Icons.alternate_email),
+                      const SizedBox(height: 20),
+                      _buildPremiumTextField("Bio", _bioController, Icons.info_outline, maxLines: 3),
+                      const SizedBox(height: 20),
+                      _buildPremiumTextField("Email Address", _emailController, Icons.email_outlined),
+                    ],
+                  ),
+                ),
                 
                 const SizedBox(height: 40),
                 
@@ -138,11 +218,13 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   : ElevatedButton(
                       onPressed: _saveChanges,
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF94A3B8), // Warna biru keabuan
+                        backgroundColor: const Color(0xFF1E293B), // Warna dark modern
                         minimumSize: const Size(double.infinity, 55),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(15),
                         ),
+                        elevation: 5,
+                        shadowColor: const Color(0xFF1E293B).withAlpha(100),
                       ),
                       child: const Text("Simpan Perubahan", style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
                     ),
@@ -159,24 +241,31 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     );
   }
 
-  Widget _buildTextField(String label, TextEditingController controller, {int maxLines = 1}) {
+  Widget _buildPremiumTextField(String label, TextEditingController controller, IconData icon, {int maxLines = 1}) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           label,
-          style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF1E293B)),
+          style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF64748B), fontSize: 13),
         ),
         const SizedBox(height: 8),
         TextField(
           controller: controller,
           maxLines: maxLines,
+          style: const TextStyle(fontWeight: FontWeight.w500),
           decoration: InputDecoration(
             filled: true,
-            fillColor: Colors.white,
+            fillColor: const Color(0xFFF8F9FB),
+            prefixIcon: maxLines == 1 ? Icon(icon, color: Colors.grey) : null,
+            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
             border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(15),
+              borderRadius: BorderRadius.circular(12),
               borderSide: BorderSide.none,
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: Color(0xFFD4AF37), width: 1.5),
             ),
           ),
         ),

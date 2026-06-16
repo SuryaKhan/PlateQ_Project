@@ -15,15 +15,52 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
   bool _isLoading = false;
+  final _formKey = GlobalKey<FormState>();
+
+  String _passwordStrengthText = '';
+  Color _passwordStrengthColor = Colors.transparent;
+
+  void _checkPasswordStrength(String value) {
+    if (value.isEmpty) {
+      setState(() {
+        _passwordStrengthText = '';
+        _passwordStrengthColor = Colors.transparent;
+      });
+      return;
+    }
+
+    if (value.length < 8) {
+      setState(() {
+        _passwordStrengthText = 'Terlalu Pendek (Min. 8 karakter)';
+        _passwordStrengthColor = Colors.red;
+      });
+      return;
+    }
+
+    bool hasLetters = RegExp(r'[a-zA-Z]').hasMatch(value);
+    bool hasNumbers = RegExp(r'[0-9]').hasMatch(value);
+    bool hasSpecials = RegExp(r'[!@#$%^&*(),.?":{}|<>]').hasMatch(value);
+
+    if (hasLetters && hasNumbers && hasSpecials) {
+      setState(() {
+        _passwordStrengthText = 'Rumit 🔥';
+        _passwordStrengthColor = Colors.green;
+      });
+    } else if ((hasLetters && hasNumbers) || (hasLetters && hasSpecials) || (hasNumbers && hasSpecials)) {
+      setState(() {
+        _passwordStrengthText = 'Oke 👍';
+        _passwordStrengthColor = Colors.orange;
+      });
+    } else {
+      setState(() {
+        _passwordStrengthText = 'Low ⚠️';
+        _passwordStrengthColor = Colors.redAccent;
+      });
+    }
+  }
 
   void _handleRegister() async {
-    if (_nameController.text.isEmpty ||
-        _emailController.text.isEmpty ||
-        _passwordController.text.isEmpty ||
-        _confirmPasswordController.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Semua kolom harus diisi!")),
-      );
+    if (!_formKey.currentState!.validate()) {
       return;
     }
 
@@ -52,6 +89,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
     setState(() => _isLoading = false);
 
     if (success) {
+      // Auto login agar token tersimpan
+      bool loginSuccess = await AuthService.login(username, _passwordController.text);
+      if (loginSuccess) {
+         // Update profile untuk menyimpan Full Name
+         await AuthService.updateProfile(_nameController.text, username, 'Halo, saya $username!', _emailController.text);
+      }
+
+      if (!mounted) return;
       // Navigasi ke Welcome to Kitchen Screen
       Navigator.pushReplacement(
         context,
@@ -90,7 +135,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Container(
-              padding: const EdgeInsets.all(20),
+              padding: const EdgeInsets.all(5),
               decoration: BoxDecoration(
                 color: Theme.of(context).colorScheme.surface,
                 shape: BoxShape.circle,
@@ -102,7 +147,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   ),
                 ],
               ),
-              child: Icon(Icons.restaurant, size: 50, color: Theme.of(context).textTheme.bodyLarge?.color),
+              child: ClipOval(
+                child: Image.asset('assets/images/LogoPlateQ.png', width: 120, height: 120, fit: BoxFit.cover),
+              ),
             ),
             const SizedBox(height: 20),
             Text(
@@ -129,15 +176,42 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   ),
                 ],
               ),
-              child: Column(
-                children: [
-                  _buildTextField("Full Name", "Chef Gusteau", _nameController),
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  children: [
+                  _buildTextField("Full Name", "Chef Gusteau", _nameController, validator: (val) {
+                    if (val == null || val.isEmpty) return 'Nama wajib diisi';
+                    return null;
+                  }),
                   const SizedBox(height: 20),
-                  _buildTextField("Email Address", "gusteau@curator.com", _emailController),
+                  _buildTextField("Email Address", "gusteau@curator.com", _emailController, validator: (val) {
+                    if (val == null || val.isEmpty) return 'Email wajib diisi';
+                    if (!val.contains('@')) return 'Format email tidak valid (harus ada @)';
+                    return null;
+                  }),
                   const SizedBox(height: 20),
-                  _buildTextField("Password", "••••••••", _passwordController, obscureText: true),
+                  _buildTextField("Password", "••••••••", _passwordController, obscureText: true, onChanged: _checkPasswordStrength, validator: (val) {
+                    if (val == null || val.isEmpty) return 'Password wajib diisi';
+                    if (val.length < 8) return 'Password minimal 8 karakter';
+                    return null;
+                  }),
+                  if (_passwordStrengthText.isNotEmpty)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 8.0, left: 4.0),
+                      child: Align(
+                        alignment: Alignment.centerLeft,
+                        child: Text(
+                          _passwordStrengthText,
+                          style: TextStyle(color: _passwordStrengthColor, fontWeight: FontWeight.bold, fontSize: 12),
+                        ),
+                      ),
+                    ),
                   const SizedBox(height: 20),
-                  _buildTextField("Confirm Password", "••••••••", _confirmPasswordController, obscureText: true),
+                  _buildTextField("Confirm Password", "••••••••", _confirmPasswordController, obscureText: true, validator: (val) {
+                    if (val == null || val.isEmpty) return 'Konfirmasi Password wajib diisi';
+                    return null;
+                  }),
                   
                   const SizedBox(height: 32),
 
@@ -166,6 +240,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           ),
                         ),
                 ],
+               ),
               ),
             ),
 
@@ -203,7 +278,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
    );
   }
 
-  Widget _buildTextField(String label, String hint, TextEditingController controller, {bool obscureText = false}) {
+  Widget _buildTextField(String label, String hint, TextEditingController controller, {bool obscureText = false, String? Function(String?)? validator, void Function(String)? onChanged}) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -212,9 +287,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
           style: TextStyle(fontWeight: FontWeight.bold, color: Theme.of(context).textTheme.bodyLarge?.color),
         ),
         const SizedBox(height: 8),
-        TextField(
+        TextFormField(
           controller: controller,
           obscureText: obscureText,
+          validator: validator,
+          onChanged: onChanged,
           decoration: InputDecoration(
             hintText: hint,
             hintStyle: TextStyle(color: Colors.grey.shade400),

@@ -5,9 +5,9 @@ import 'package:flutter/foundation.dart';
 
 class AuthService {
   // Base URL untuk Auth
-  static const String authUrl = 'http://192.168.1.5:3000/api/auth';
+  static const String authUrl = 'http://192.168.101.127:3000/api/auth';
   // Base URL untuk User Profile
-  static const String userUrl = 'http://192.168.1.5:3000/api/users';
+  static const String userUrl = 'http://192.168.101.127:3000/api/users';
 
   // ==========================================
   // 1. FUNGSI REGISTER (DAFTAR)

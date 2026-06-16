@@ -67,6 +67,9 @@ exports.getProfile = async (req, res) => {
         },
         comments: {    // Komentarku
           include: { recipe: true }
+        },
+        _count: {
+          select: { followers: true, following: true }
         }
       }
     });
@@ -87,12 +90,34 @@ exports.getProfile = async (req, res) => {
       role: userProfile.role,
       myRecipes: userProfile.recipes,
       favoriteRecipes: userProfile.likes.map(like => like.recipe),
-      myComments: userProfile.comments
+      myComments: userProfile.comments,
+      followers: userProfile._count.followers,
+      following: userProfile._count.following
     };
 
     res.json(responseData);
   } catch (error) {
     console.error("❌ ERROR GET PROFILE:", error);
     res.status(500).json({ error: "Gagal mengambil data profil." });
+  }
+};
+
+exports.uploadProfileImage = async (req, res) => {
+  try {
+    const userId = req.user.userId;
+    if (!req.file) {
+      return res.status(400).json({ error: "Tidak ada gambar yang diupload" });
+    }
+    const profileImage = req.file.filename;
+
+    const updatedUser = await prisma.user.update({
+      where: { id: userId },
+      data: { profileImage },
+    });
+
+    res.json({ message: "Foto profil berhasil diperbarui!", profileImage: updatedUser.profileImage });
+  } catch (error) {
+    console.error("❌ ERROR UPLOAD PROFILE IMAGE:", error);
+    res.status(500).json({ error: "Gagal mengupload foto." });
   }
 };

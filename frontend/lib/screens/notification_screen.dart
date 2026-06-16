@@ -1,56 +1,86 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+import '../widgets/update_dialog.dart';
 
-class NotificationScreen extends StatelessWidget {
+class NotificationScreen extends StatefulWidget {
   const NotificationScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    // Data Dummy Notifikasi
-    final List<Map<String, dynamic>> notifications = [
-      {
-        "type": "like",
-        "name": "Siti Aminah",
-        "action": "menyukai resep Anda",
-        "target": "Nasi Goreng Spesial",
-        "time": "10 mnt",
-        "isRead": false,
-      },
-      {
-        "type": "comment",
-        "name": "Chef Juna",
-        "action": "mengomentari resep Anda",
-        "target": "Sup Tomat Klasik",
-        "time": "1 jam",
-        "isRead": false,
-      },
-      {
-        "type": "follow",
-        "name": "Rina Nose",
-        "action": "mulai mengikuti Anda",
-        "target": "",
-        "time": "3 jam",
-        "isRead": true,
-      },
-      {
-        "type": "like",
-        "name": "Budi Santoso",
-        "action": "menyukai resep Anda",
-        "target": "Salad Musim Semi",
-        "time": "Kemarin",
-        "isRead": true,
-      },
-      {
-        "type": "comment",
-        "name": "Ahmad Dani",
-        "action": "membalas komentar Anda di",
-        "target": "Pasta Vongole",
-        "time": "Kemarin",
-        "isRead": true,
-      },
-    ];
+  State<NotificationScreen> createState() => _NotificationScreenState();
+}
 
+class _NotificationScreenState extends State<NotificationScreen> {
+  List<dynamic> notifications = [];
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchNotifications();
+  }
+
+  Future<void> _fetchNotifications() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('jwt_token') ?? '';
+      
+      final response = await http.get(
+        Uri.parse('http://192.168.101.127:3000/api/social/notifications'),
+        headers: {'Authorization': 'Bearer $token'}
+      );
+
+      if (response.statusCode == 200) {
+        setState(() {
+          notifications = jsonDecode(response.body);
+          _isLoading = false;
+        });
+        
+        // Update has_unread_notifications
+        bool hasUnread = notifications.any((n) => n['isRead'] == false);
+        await prefs.setBool('has_unread_notifications', hasUnread);
+      } else {
+        setState(() { _isLoading = false; });
+      }
+    } catch (e) {
+      setState(() { _isLoading = false; });
+    }
+  }
+
+  Future<void> _markAllAsRead() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('has_unread_notifications', false);
+    
+    final token = prefs.getString('jwt_token') ?? '';
+    if (token.isNotEmpty) {
+      try {
+        await http.put(
+          Uri.parse('http://192.168.101.127:3000/api/social/notifications/read'),
+          headers: {'Authorization': 'Bearer $token'}
+        );
+      } catch (e) {
+        debugPrint("Error marking notifications as read: $e");
+      }
+    }
+    
+    setState(() {
+      for (var notif in notifications) {
+        notif["isRead"] = true;
+      }
+    });
+
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Semua ditandai sudah dibaca"))
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FB), // Background seragam
+      backgroundColor: const Color(0xFFF8F9FB),
       appBar: AppBar(
         backgroundColor: const Color(0xFFF8F9FB),
         elevation: 0,
@@ -76,10 +106,7 @@ class NotificationScreen extends StatelessWidget {
         centerTitle: true,
         actions: [
           TextButton(
-            onPressed: () {
-              // Logika mark all as read
-              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Semua ditandai sudah dibaca")));
-            },
+            onPressed: _markAllAsRead,
             child: const Text(
               "Tandai Dibaca",
               style: TextStyle(color: Color(0xFF64748B), fontWeight: FontWeight.bold, fontSize: 12),
@@ -88,44 +115,104 @@ class NotificationScreen extends StatelessWidget {
           const SizedBox(width: 8),
         ],
       ),
-      body: ListView.builder(
-        padding: const EdgeInsets.all(20),
-        itemCount: notifications.length,
-        itemBuilder: (context, index) {
-          final notif = notifications[index];
-          return _buildNotificationItem(notif);
-        },
-      ),
+      body: _isLoading 
+        ? const Center(child: CircularProgressIndicator())
+        : notifications.isEmpty
+            ? Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.notifications_off_outlined, size: 80, color: Colors.grey[300]),
+                    const SizedBox(height: 16),
+                    Text("Belum ada notifikasi", style: TextStyle(fontSize: 18, color: Colors.grey[600], fontWeight: FontWeight.bold)),
+                  ],
+                ),
+              )
+            : ListView.builder(
+                padding: const EdgeInsets.all(20),
+                itemCount: notifications.length,
+                itemBuilder: (context, index) {
+                  final notif = notifications[index];
+                  return _buildNotificationItem(notif);
+                },
+              ),
     );
   }
 
-  Widget _buildNotificationItem(Map<String, dynamic> notif) {
+  Widget _buildNotificationItem(dynamic notif) {
     IconData iconData;
     Color iconColor;
+    
+    String type = notif["type"] ?? "ANNOUNCEMENT";
 
-    switch (notif["type"]) {
-      case "like":
+    switch (type) {
+      case "LIKE":
         iconData = Icons.favorite;
         iconColor = Colors.redAccent;
         break;
-      case "comment":
+      case "COMMENT":
         iconData = Icons.chat_bubble;
         iconColor = Colors.blueAccent;
         break;
-      case "follow":
+      case "FOLLOW":
         iconData = Icons.person_add;
         iconColor = Colors.green;
+        break;
+      case "ADMIN_ANNOUNCEMENT":
+        iconData = Icons.campaign;
+        iconColor = Colors.orange;
+        break;
+      case "SUPERADMIN_ANNOUNCEMENT":
+        iconData = Icons.verified;
+        iconColor = Colors.blue;
+        break;
+      case "ANNOUNCEMENT":
+        iconData = Icons.campaign;
+        iconColor = Colors.orange;
         break;
       default:
         iconData = Icons.notifications;
         iconColor = Colors.grey;
     }
 
-    return Container(
-      margin: const EdgeInsets.only(bottom: 16),
+    return InkWell(
+      onTap: () {
+        final messageText = notif["message"] ?? 'Ada pemberitahuan baru!';
+        if (messageText.contains('[UPDATE APK]')) {
+          showDialog(
+            context: context,
+            builder: (context) => const UpdateDialog(),
+          );
+        } else if (type.contains('ANNOUNCEMENT')) {
+          String titleStr = "Pemberitahuan Baru";
+          if (type == 'SUPERADMIN_ANNOUNCEMENT') {
+            titleStr = "📢 Pengumuman Penting!";
+          } else if (type == 'ADMIN_ANNOUNCEMENT' || type == 'ANNOUNCEMENT') {
+            titleStr = "ℹ️ Pengumuman";
+          }
+
+          showDialog(
+            context: context,
+            builder: (context) => AlertDialog(
+              title: Text(titleStr, style: const TextStyle(fontWeight: FontWeight.bold)),
+              content: Text(messageText.replaceAll('[INFO]', '').replaceAll('[EVENT]', '').trim()),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text("Tutup"),
+                ),
+              ],
+            )
+          );
+        }
+      },
+      borderRadius: BorderRadius.circular(15),
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 16),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: notif["isRead"] ? Colors.white : const Color(0xFFEFF6FF), // Biru sangat muda jika belum dibaca
+        color: notif["isRead"] ? Colors.white : const Color(0xFFEFF6FF),
         borderRadius: BorderRadius.circular(15),
         boxShadow: [
           BoxShadow(
@@ -139,7 +226,6 @@ class NotificationScreen extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Avatar + Small Icon overlay
           Stack(
             clipBehavior: Clip.none,
             children: [
@@ -163,7 +249,6 @@ class NotificationScreen extends StatelessWidget {
             ],
           ),
           const SizedBox(width: 16),
-          // Content
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -172,22 +257,18 @@ class NotificationScreen extends StatelessWidget {
                   text: TextSpan(
                     style: const TextStyle(color: Color(0xFF1E293B), fontSize: 14, height: 1.4),
                     children: [
-                      TextSpan(text: notif["name"], style: const TextStyle(fontWeight: FontWeight.bold)),
-                      TextSpan(text: " ${notif["action"]}"),
-                      if (notif["target"].isNotEmpty)
-                        TextSpan(text: " \"${notif["target"]}\"", style: const TextStyle(fontWeight: FontWeight.bold)),
+                      TextSpan(text: notif["message"]),
                     ],
                   ),
                 ),
                 const SizedBox(height: 6),
                 Text(
-                  notif["time"],
+                  "Beberapa waktu yang lalu", // To do: add date formatting
                   style: const TextStyle(color: Color(0xFF94A3B8), fontSize: 12),
                 ),
               ],
             ),
           ),
-          // Indikator Titik (Unread)
           if (!notif["isRead"])
             Container(
               margin: const EdgeInsets.only(top: 8, left: 8),
@@ -200,6 +281,6 @@ class NotificationScreen extends StatelessWidget {
             )
         ],
       ),
-    );
+    ));
   }
 }

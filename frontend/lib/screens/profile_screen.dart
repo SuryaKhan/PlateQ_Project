@@ -128,43 +128,22 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 children: [
                   const SizedBox(height: 20),
                   // Avatar Section
-                  Stack(
-                    alignment: Alignment.bottomRight,
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(4),
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          border: Border.all(color: Colors.white, width: 4),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withAlpha(10),
-                              blurRadius: 10,
-                              offset: const Offset(0, 5),
-                            )
-                          ],
-                        ),
-                        child: CircleAvatar(
-                          radius: 55,
-                          backgroundColor: const Color(0xFFE2E8F0),
-                          backgroundImage: user['profileImage'] != null 
-                              ? NetworkImage('http://192.168.1.5:3000/uploads/${user['profileImage']}') 
-                              : null,
-                          child: user['profileImage'] == null 
-                              ? const Icon(Icons.person, size: 55, color: Colors.grey) 
-                              : null,
-                        ),
-                      ),
-                      Container(
-                        padding: const EdgeInsets.all(6),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFB48A36), // Warna emas/mustard mockup
-                          shape: BoxShape.circle,
-                          border: Border.all(color: Colors.white, width: 2),
-                        ),
-                        child: const Icon(Icons.camera_alt, color: Colors.white, size: 14),
-                      ),
-                    ],
+                  Container(
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      border: Border.all(color: Colors.white, width: 4),
+                      boxShadow: [BoxShadow(color: Colors.black.withAlpha(20), blurRadius: 10)],
+                    ),
+                    child: CircleAvatar(
+                      radius: 55,
+                      backgroundColor: const Color(0xFFE2E8F0),
+                      backgroundImage: user['profileImage'] != null 
+                          ? NetworkImage('http://192.168.101.127:3000/uploads/${user['profileImage']}') 
+                          : null,
+                      child: user['profileImage'] == null 
+                          ? const Icon(Icons.person, size: 55, color: Colors.grey) 
+                          : null,
+                    ),
                   ),
                   const SizedBox(height: 16),
                   
@@ -187,6 +166,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   Text(
                     "@${user['username']}",
                     style: const TextStyle(color: Color(0xFF64748B), fontSize: 14),
+                  ),
+                  const SizedBox(height: 8),
+                  // Follow Stats
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text("${user['followers'] ?? 0}", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Theme.of(context).textTheme.bodyLarge?.color)),
+                      const SizedBox(width: 4),
+                      const Text("Followers", style: TextStyle(color: Colors.grey, fontSize: 13)),
+                      const SizedBox(width: 20),
+                      Text("${user['following'] ?? 0}", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Theme.of(context).textTheme.bodyLarge?.color)),
+                      const SizedBox(width: 4),
+                      const Text("Following", style: TextStyle(color: Colors.grey, fontSize: 13)),
+                    ],
                   ),
                   const SizedBox(height: 12),
                   Padding(
@@ -265,7 +258,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     children: [
                       _buildTabButton(0, "Resepku", Icons.restaurant_menu),
                       const SizedBox(width: 8),
-                      _buildTabButton(1, "Favorit", Icons.favorite_border),
+                      _buildTabButton(1, "Koleksi", Icons.folder_special_outlined),
                       const SizedBox(width: 8),
                       _buildTabButton(2, "Komentar", Icons.chat_bubble_outline),
                     ],
@@ -340,15 +333,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ),
       );
     } else if (_selectedTabIndex == 1) {
-      // Tab Favorit (Grid Dummy dengan Ikon Hati)
-      // Buat data dummy favorit untuk keperluan UI
-      final dummyFavorites = [
-        Recipe(id: 991, title: 'Salad Musim Semi', content: '', authorName: '', authorRole: 'USER', image: null, difficulty: 'Mudah', cookingTime: '15 Min'),
-        Recipe(id: 992, title: 'Sup Tomat Klasik', content: '', authorName: '', authorRole: 'USER', image: null, difficulty: 'Sedang', cookingTime: '45 Min'),
-        Recipe(id: 993, title: 'Pasta Vongole', content: '', authorName: '', authorRole: 'USER', image: null, difficulty: 'Sedit Sulit', cookingTime: '30 Min'),
-        Recipe(id: 994, title: 'Pizza Margherita', content: '', authorName: '', authorRole: 'USER', image: null, difficulty: 'Sedang', cookingTime: '60 Min'),
-      ];
-
+      // Tab Koleksi (Folders)
+      final collections = ["Menu Diet", "Ide Bekal Anak", "Resep Tanggal Tua", "Comfort Food"];
       return SliverPadding(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
         sliver: SliverGrid(
@@ -356,33 +342,81 @@ class _ProfileScreenState extends State<ProfileScreen> {
             crossAxisCount: 2,
             crossAxisSpacing: 16,
             mainAxisSpacing: 16,
-            childAspectRatio: 0.8,
+            childAspectRatio: 1.0,
           ),
           delegate: SliverChildBuilderDelegate(
             (context, index) {
-              return _buildGridCard(dummyFavorites[index], showFavoriteIcon: true);
+              return Container(
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.surface,
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: Colors.grey.withAlpha(50)),
+                  boxShadow: [
+                    BoxShadow(color: Colors.black.withAlpha(10), blurRadius: 10, offset: const Offset(0, 5)),
+                  ],
+                ),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.folder, size: 50, color: Theme.of(context).primaryColor),
+                    const SizedBox(height: 12),
+                    Text(
+                      collections[index], 
+                      style: TextStyle(fontWeight: FontWeight.bold, color: Theme.of(context).textTheme.bodyLarge?.color), 
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 4),
+                    const Text("12 Resep", style: TextStyle(fontSize: 12, color: Colors.grey)),
+                  ],
+                ),
+              );
             },
-            childCount: dummyFavorites.length,
+            childCount: collections.length,
           ),
         ),
       );
     } else {
-      // Tab Komentar (List Dummy)
+      // Tab Komentar (Real dari DB)
+      final comments = _profileData?['myComments'] as List? ?? [];
+      
+      if (comments.isEmpty) {
+        return SliverFillRemaining(
+          child: Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.chat_bubble_outline, size: 50, color: Colors.grey.shade400),
+                const SizedBox(height: 16),
+                Text("Belum ada komentar", style: TextStyle(color: Colors.grey.shade600, fontWeight: FontWeight.bold)),
+              ],
+            ),
+          ),
+        );
+      }
+
       return SliverPadding(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
         sliver: SliverList(
           delegate: SliverChildBuilderDelegate(
             (context, index) {
-              final comments = [
-                {"title": "Salad Musim Semi", "time": "2 jam lalu", "text": "Wah resep dressingnya segar banget! Cocok buat menu diet besok."},
-                {"title": "Sup Tomat Klasik", "time": "Kemarin", "text": "Teksturnya pas, anak-anak di rumah pada suka. Makasih resepnya Chef!"},
-                {"title": "Salmon Panggang Madu", "time": "3 hari lalu", "text": "Trik panggangnya mantap, ngga lengket di teflon. Bumbu meresap sempurna."},
-                {"title": "Pasta Jamur Krimi", "time": "1 minggu lalu", "text": "Saus krimnya creamy banget tapi ngga bikin eneg. Jadi menu favorit keluarga sekarang."},
-              ];
+              final comment = comments[index];
+              final recipeName = comment['recipe']?['title'] ?? 'Resep Terhapus';
+              final content = comment['content'] ?? '';
               
-              if (index >= comments.length) return const SizedBox.shrink();
-              
-              var comment = comments[index];
+              // Hitung waktu sederhana
+              String timeAgo = "Baru saja";
+              try {
+                final date = DateTime.parse(comment['createdAt']);
+                final diff = DateTime.now().difference(date);
+                if (diff.inDays > 0) {
+                  timeAgo = '${diff.inDays} hari lalu';
+                } else if (diff.inHours > 0) {
+                  timeAgo = '${diff.inHours} jam lalu';
+                } else if (diff.inMinutes > 0) {
+                  timeAgo = '${diff.inMinutes} menit lalu';
+                }
+              } catch (_) {}
+
               return Container(
                 margin: const EdgeInsets.only(bottom: 16),
                 padding: const EdgeInsets.all(16),
@@ -396,10 +430,23 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Avatar Dummy
-                    CircleAvatar(
-                      radius: 20,
-                      backgroundColor: const Color(0xFFE2E8F0),
+                    // Avatar dari user yang sedang login
+                    Container(
+                      width: 40,
+                      height: 40,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFE2E8F0),
+                        shape: BoxShape.circle,
+                        image: _profileData!['profileImage'] != null 
+                            ? DecorationImage(
+                                image: NetworkImage('http://192.168.101.127:3000/uploads/${_profileData!['profileImage']}'),
+                                fit: BoxFit.cover,
+                              )
+                            : null,
+                      ),
+                      child: _profileData!['profileImage'] == null 
+                          ? const Icon(Icons.person, color: Colors.grey)
+                          : null,
                     ),
                     const SizedBox(width: 12),
                     Expanded(
@@ -409,13 +456,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Text(comment["title"]!, style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
-                              Text(comment["time"]!, style: const TextStyle(fontSize: 10, color: Color(0xFF64748B))),
+                              Expanded(
+                                child: Text(recipeName, style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF1E293B)), maxLines: 1, overflow: TextOverflow.ellipsis),
+                              ),
+                              Text(timeAgo, style: const TextStyle(fontSize: 10, color: Color(0xFF64748B))),
                             ],
                           ),
                           const SizedBox(height: 8),
                           Text(
-                            comment["text"]!,
+                            content,
                             style: const TextStyle(color: Color(0xFF475569), fontSize: 13, height: 1.4),
                           ),
                         ],
@@ -425,7 +474,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ),
               );
             },
-            childCount: 4,
+            childCount: comments.length,
           ),
         ),
       );
@@ -458,7 +507,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(20),
                   child: Image.network(
-                    'http://192.168.1.5:3000/uploads/${recipe.image}',
+                    'http://192.168.101.127:3000/uploads/${recipe.image}',
                     fit: BoxFit.cover,
                     colorBlendMode: BlendMode.darken,
                     color: Colors.black.withAlpha(80),

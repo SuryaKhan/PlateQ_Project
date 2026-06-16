@@ -14,12 +14,10 @@ class _LoginScreenState extends State<LoginScreen> {
   final _passwordController = TextEditingController();
   bool _isLoading = false;
   bool _isPasswordVisible = false;
+  final _formKey = GlobalKey<FormState>();
 
   void _handleLogin() async {
-    if (_usernameController.text.isEmpty || _passwordController.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Isi dulu bro username sama passwordnya!")),
-      );
+    if (!_formKey.currentState!.validate()) {
       return;
     }
 
@@ -140,7 +138,7 @@ class _LoginScreenState extends State<LoginScreen> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Container(
-                padding: EdgeInsets.all(20),
+                padding: EdgeInsets.all(5),
                 decoration: BoxDecoration(
                   color: Theme.of(context).colorScheme.surface,
                   shape: BoxShape.circle,
@@ -152,7 +150,9 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   ],
                 ),
-                child: Icon(Icons.restaurant, size: 50, color: Theme.of(context).textTheme.bodyLarge?.color),
+                child: ClipOval(
+                  child: Image.asset('assets/images/LogoPlateQ.png', width: 120, height: 120, fit: BoxFit.cover),
+                ),
               ),
               SizedBox(height: 20),
               Text(
@@ -178,10 +178,16 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   ],
                 ),
+              child: Form(
+                key: _formKey,
                 child: Column(
                   children: [
-                    TextField(
+                    TextFormField(
                       controller: _usernameController,
+                      validator: (val) {
+                        if (val == null || val.isEmpty) return 'Username atau Email wajib diisi';
+                        return null;
+                      },
                       decoration: InputDecoration(
                         labelText: "Username atau Email",
                         filled: true,
@@ -193,9 +199,13 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                     ),
                     SizedBox(height: 15),
-                    TextField(
+                    TextFormField(
                       controller: _passwordController,
                       obscureText: !_isPasswordVisible,
+                      validator: (val) {
+                        if (val == null || val.isEmpty) return 'Password wajib diisi';
+                        return null;
+                      },
                       decoration: InputDecoration(
                         labelText: "Password",
                         filled: true,
@@ -251,9 +261,10 @@ class _LoginScreenState extends State<LoginScreen> {
                   ],
                 ),
               ),
-              SizedBox(height: 30),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
+            ),
+            SizedBox(height: 30),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text("Belum punya akun? ", style: TextStyle(color: Colors.grey)),
                   GestureDetector(
