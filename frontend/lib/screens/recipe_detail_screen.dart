@@ -401,45 +401,24 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                           ],
                         ),
                         const SizedBox(height: 16),
-                        SizedBox(
-                          height: 120,
-                          child: ListView.builder(
-                            scrollDirection: Axis.horizontal,
-                            itemCount: 3, // Dummy
-                            itemBuilder: (context, index) {
-                              return Container(
-                                width: 120,
-                                margin: const EdgeInsets.only(right: 12),
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(15),
-                                  color: Colors.grey.shade300,
-                                  border: Border.all(color: Colors.white, width: 2),
-                                  boxShadow: [BoxShadow(color: Colors.black.withAlpha(10), blurRadius: 5)],
-                                ),
-                                child: Stack(
-                                  children: [
-                                    ClipRRect(
-                                      borderRadius: BorderRadius.circular(13),
-                                      child: Image.network(
-                                        'https://picsum.photos/200?random=$index', // Dummy gambar acak
-                                        fit: BoxFit.cover,
-                                        width: double.infinity,
-                                        height: double.infinity,
-                                      ),
-                                    ),
-                                    const Positioned(
-                                      bottom: 8,
-                                      left: 8,
-                                      child: CircleAvatar(
-                                        radius: 12,
-                                        backgroundColor: Colors.white,
-                                        child: Icon(Icons.person, size: 16, color: Colors.grey),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              );
-                            },
+                        Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.all(20),
+                          decoration: BoxDecoration(
+                            color: Theme.of(context).colorScheme.surfaceContainerHighest.withAlpha(100),
+                            borderRadius: BorderRadius.circular(15),
+                            border: Border.all(color: Colors.grey.shade300, width: 1),
+                          ),
+                          child: Column(
+                            children: [
+                              Icon(Icons.camera_alt_outlined, size: 40, color: Colors.grey.shade400),
+                              const SizedBox(height: 8),
+                              const Text(
+                                "Belum ada foto recook.\nFitur ini akan segera hadir!",
+                                textAlign: TextAlign.center,
+                                style: TextStyle(color: Colors.grey, fontSize: 14),
+                              ),
+                            ],
                           ),
                         ),
                         const SizedBox(height: 32),
