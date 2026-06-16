@@ -21,7 +21,7 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   late Future<List<Recipe>> _recipesFuture;
   int _selectedCategoryIndex = 0;
-  final List<String> _categories = ['Semua', 'Nasi', 'Mie', 'Minuman'];
+  final List<String> _categories = ['Semua', 'Makanan', 'Minuman', 'Dessert'];
   bool _hasUnreadNotifications = false;
   Timer? _pollingTimer;
   int _lastNotificationCount = 0;
@@ -410,22 +410,6 @@ class RecipeGridCard extends StatelessWidget {
               ),
             ],
           ),
-          // Bagian melengkung khas mockup
-          Positioned(
-            bottom: 65, // Sesuaikan angka ini agar pas dengan desain mockup (tengah-tengah transisi gambar)
-            left: 0,
-            right: 0,
-            child: Container(
-              height: 20,
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.surface,
-                borderRadius: const BorderRadius.only(
-                  topLeft: Radius.circular(20),
-                  topRight: Radius.circular(20),
-                ),
-              ),
-            ),
-          )
         ],
       ),
     );

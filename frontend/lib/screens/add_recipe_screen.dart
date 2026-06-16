@@ -19,8 +19,8 @@ class _AddRecipeScreenState extends State<AddRecipeScreen> {
   final TextEditingController _prepTimeController = TextEditingController();
   final TextEditingController _servingsController = TextEditingController();
 
-  String _selectedCategory = "Nasi";
-  final List<String> _categories = ["Nasi", "Mie", "Minuman", "Dessert"];
+  String _selectedCategory = "Makanan";
+  final List<String> _categories = ["Makanan", "Minuman", "Dessert"];
 
   // Dynamic Lists for Ingredients
   final List<Map<String, TextEditingController>> _ingredients = [
