@@ -233,7 +233,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         onPressed: _showForgotPasswordDialog,
                         child: Text(
                           "Forgot?",
-                          style: TextStyle(color: Colors.black54),
+                          style: TextStyle(color: Theme.of(context).brightness == Brightness.dark ? Colors.white70 : Colors.black54),
                         ),
                       ),
                     ),

@@ -16,6 +16,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _confirmPasswordController = TextEditingController();
   bool _isLoading = false;
   final _formKey = GlobalKey<FormState>();
+  bool _isPasswordVisible = false;
+  bool _isConfirmPasswordVisible = false;
 
   String _passwordStrengthText = '';
   Color _passwordStrengthColor = Colors.transparent;
@@ -191,11 +193,18 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     return null;
                   }),
                   const SizedBox(height: 20),
-                  _buildTextField("Password", "••••••••", _passwordController, obscureText: true, onChanged: _checkPasswordStrength, validator: (val) {
+                  _buildTextField("Password", "••••••••", _passwordController, obscureText: !_isPasswordVisible, onChanged: _checkPasswordStrength, validator: (val) {
                     if (val == null || val.isEmpty) return 'Password wajib diisi';
                     if (val.length < 8) return 'Password minimal 8 karakter';
                     return null;
-                  }),
+                  }, suffixIcon: IconButton(
+                    icon: Icon(_isPasswordVisible ? Icons.visibility : Icons.visibility_off, color: Colors.grey),
+                    onPressed: () {
+                      setState(() {
+                        _isPasswordVisible = !_isPasswordVisible;
+                      });
+                    },
+                  )),
                   if (_passwordStrengthText.isNotEmpty)
                     Padding(
                       padding: const EdgeInsets.only(top: 8.0, left: 4.0),
@@ -208,10 +217,17 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       ),
                     ),
                   const SizedBox(height: 20),
-                  _buildTextField("Confirm Password", "••••••••", _confirmPasswordController, obscureText: true, validator: (val) {
+                  _buildTextField("Confirm Password", "••••••••", _confirmPasswordController, obscureText: !_isConfirmPasswordVisible, validator: (val) {
                     if (val == null || val.isEmpty) return 'Konfirmasi Password wajib diisi';
                     return null;
-                  }),
+                  }, suffixIcon: IconButton(
+                    icon: Icon(_isConfirmPasswordVisible ? Icons.visibility : Icons.visibility_off, color: Colors.grey),
+                    onPressed: () {
+                      setState(() {
+                        _isConfirmPasswordVisible = !_isConfirmPasswordVisible;
+                      });
+                    },
+                  )),
                   
                   const SizedBox(height: 32),
 
@@ -278,7 +294,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
    );
   }
 
-  Widget _buildTextField(String label, String hint, TextEditingController controller, {bool obscureText = false, String? Function(String?)? validator, void Function(String)? onChanged}) {
+  Widget _buildTextField(String label, String hint, TextEditingController controller, {bool obscureText = false, Widget? suffixIcon, String? Function(String?)? validator, void Function(String)? onChanged}) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -297,6 +313,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
             hintStyle: TextStyle(color: Colors.grey.shade400),
             filled: true,
             fillColor: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF2D3748) : Colors.grey.shade200,
+            suffixIcon: suffixIcon,
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(15),
               borderSide: BorderSide.none,
