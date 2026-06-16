@@ -8,6 +8,7 @@ import '../services/update_service.dart';
 import '../models/recipe_model.dart';
 
 import '../screens/notification_screen.dart';
+import '../screens/recipe_detail_screen.dart';
 import '../theme/theme_manager.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -271,7 +272,17 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                         itemCount: recipes.length,
                         itemBuilder: (context, index) {
-                          return RecipeGridCard(recipe: recipes[index]);
+                          return GestureDetector(
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => RecipeDetailScreen(recipe: recipes[index]),
+                                ),
+                              );
+                            },
+                            child: RecipeGridCard(recipe: recipes[index]),
+                          );
                         },
                       ),
                     );

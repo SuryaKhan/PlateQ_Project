@@ -18,16 +18,24 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
   final FocusNode _commentFocusNode = FocusNode();
   String? _currentUsername;
   
-  // State for dynamic comments
-  final List<Map<String, String>> _comments = [
-    {"name": "Budi Santoso", "time": "2 hari yang lalu", "text": "Resepnya mantap! Wangi banget karena rempahnya kerasa. Keluarga pada suka."},
-    {"name": "Siti Aminah", "time": "1 hari yang lalu", "text": "Wah, setuju banget! Kemarin baru coba juga, bumbunya pas di lidah."},
-  ];
+  List<Map<String, dynamic>> _comments = [];
+  bool _isLoadingComments = true;
 
   @override
   void initState() {
     super.initState();
     _loadCurrentUser();
+    _fetchComments();
+  }
+
+  Future<void> _fetchComments() async {
+    final comments = await RecipeService.fetchComments(widget.recipe.id);
+    if (mounted) {
+      setState(() {
+        _comments = comments;
+        _isLoadingComments = false;
+      });
+    }
   }
 
   Future<void> _loadCurrentUser() async {
@@ -37,20 +45,36 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
     });
   }
 
-  void _addComment() {
+  Future<void> _addComment() async {
     if (_commentController.text.trim().isEmpty) return;
     
-    setState(() {
-      _comments.insert(0, {
-        "name": "Kamu", // Anggap user yang sedang login
-        "time": "Baru saja",
-        "text": _commentController.text.trim(),
-      });
-      _commentController.clear();
-    });
-    
-    // Sembunyikan keyboard
+    final text = _commentController.text.trim();
+    _commentController.clear();
     FocusScope.of(context).unfocus();
+
+    // Optimistic UI update
+    final tempComment = {
+      "text": text,
+      "user": {"name": _currentUsername ?? "Kamu", "profileImage": null},
+      "createdAt": DateTime.now().toIso8601String()
+    };
+    setState(() {
+      _comments.insert(0, tempComment);
+    });
+
+    // Send to backend
+    bool success = await RecipeService.addComment(widget.recipe.id, text);
+    if (success) {
+      _fetchComments(); // Refresh with real data
+    } else {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Gagal mengirim komentar.")));
+        // Rollback optimistic update
+        setState(() {
+          _comments.removeAt(0);
+        });
+      }
+    }
   }
 
   @override
@@ -391,10 +415,18 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                         // Komentar
                         const Text("Komentar", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
                         const SizedBox(height: 16),
-                        ..._comments.map((c) => Padding(
-                          padding: const EdgeInsets.only(bottom: 16.0),
-                          child: _buildCommentRow(c['name']!, c['time']!, c['text']!),
-                        )),
+                        ..._comments.map((c) {
+                          final user = c['user'] ?? {};
+                          final name = user['name'] ?? 'Pengguna';
+                          final text = c['text'] ?? '';
+                          final timeStr = c['createdAt'] ?? '';
+                          final time = timeStr.length > 10 ? timeStr.substring(0, 10) : 'Baru saja';
+                          
+                          return Padding(
+                            padding: const EdgeInsets.only(bottom: 16.0),
+                            child: _buildCommentRow(name, time, text),
+                          );
+                        }),
                         const SizedBox(height: 100), // Spasi untuk bottom sheet
                       ],
                     ),

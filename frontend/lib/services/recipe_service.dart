@@ -124,5 +124,39 @@ class RecipeService {
       debugPrint("Error Update Resep: $e");
       return false;
     }
+  // 6. Ambil Komentar
+  static Future<List<Map<String, dynamic>>> fetchComments(int recipeId) async {
+    try {
+      final response = await http.get(Uri.parse('$baseUrl/$recipeId/comments'));
+      if (response.statusCode == 200) {
+        return List<Map<String, dynamic>>.from(jsonDecode(response.body));
+      }
+      return [];
+    } catch (e) {
+      debugPrint("Error Fetch Comments: $e");
+      return [];
+    }
+  }
+
+  // 7. Tambah Komentar
+  static Future<bool> addComment(int recipeId, String text) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('jwt_token');
+
+      final response = await http.post(
+        Uri.parse('$baseUrl/$recipeId/comments'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: jsonEncode({'text': text}),
+      );
+
+      return response.statusCode == 201;
+    } catch (e) {
+      debugPrint("Error Add Comment: $e");
+      return false;
+    }
   }
 }

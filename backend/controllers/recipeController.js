@@ -191,5 +191,39 @@ const toggleBookmark = async (req, res) => {
     res.status(500).json({ error: "Gagal memproses bookmark." });
   }
 };
+// --- 6. Fitur Komentar ---
+const addComment = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { text } = req.body;
+    const userId = req.user.userId;
 
-module.exports = { createRecipe, getAllRecipes, updateRecipe, deleteRecipe, toggleBookmark };
+    const comment = await prisma.comment.create({
+      data: {
+        text,
+        recipeId: parseInt(id),
+        userId
+      },
+      include: { user: { select: { name: true, username: true, profileImage: true } } }
+    });
+    res.status(201).json(comment);
+  } catch (error) {
+    res.status(500).json({ error: "Gagal menambahkan komentar." });
+  }
+};
+
+const getComments = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const comments = await prisma.comment.findMany({
+      where: { recipeId: parseInt(id) },
+      include: { user: { select: { name: true, username: true, profileImage: true } } },
+      orderBy: { createdAt: 'desc' }
+    });
+    res.json(comments);
+  } catch (error) {
+    res.status(500).json({ error: "Gagal mengambil komentar." });
+  }
+};
+
+module.exports = { createRecipe, getAllRecipes, updateRecipe, deleteRecipe, toggleBookmark, addComment, getComments };
