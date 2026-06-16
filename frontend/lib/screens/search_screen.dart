@@ -87,10 +87,14 @@ class _SearchScreenState extends State<SearchScreen> {
           });
         }
       } else {
-        // Search Users
+        if (_token == null) {
+          final prefs = await SharedPreferences.getInstance();
+          _token = prefs.getString('token');
+        }
+        
         final res = await http.get(
           Uri.parse('http://192.168.101.127:3000/api/users/search?q=$query'),
-          headers: {'Authorization': 'Bearer $_token'}, // Butuh token untuk isFollowing
+          headers: _token != null ? {'Authorization': 'Bearer $_token'} : {},
         );
         if (res.statusCode == 200) {
           final List list = jsonDecode(res.body);

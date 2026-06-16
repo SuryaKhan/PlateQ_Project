@@ -9,13 +9,11 @@ const authenticateToken = (req, res, next) => {
   const headerParts = authHeader.split(' ');
   
   // NAH INI DIA! ADA DI UJUNGNYA BIAR JADI STRING:
-  const token = headerParts [1]; 
+  const token = headerParts[1]; 
 
-  console.log("--- DEBUG FINAL UNUGIRI ---");
-  console.log("Tipe Data:", typeof token); 
-  console.log("Isi Token:", token); 
-
-  if (!token) return res.status(401).json({ error: "Format token salah!" });
+  if (!token || token === "null" || token === "undefined") {
+    return res.status(401).json({ error: "Format token salah atau tidak ada!" });
+  }
 
   jwt.verify(token, process.env.JWT_SECRET || 'rahasia', (err, user) => {
     if (err) {

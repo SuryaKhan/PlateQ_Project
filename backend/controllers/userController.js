@@ -173,7 +173,20 @@ exports.searchUsers = async (req, res) => {
       return res.json([]);
     }
 
-    const currentUserId = req.user.userId;
+    let currentUserId = null;
+    const authHeader = req.headers['authorization'];
+    if (authHeader) {
+      const token = authHeader.split(' ')[1];
+      if (token && token !== "null" && token !== "undefined") {
+        try {
+          const jwt = require('jsonwebtoken');
+          const decoded = jwt.verify(token, process.env.JWT_SECRET || 'rahasia');
+          currentUserId = decoded.userId;
+        } catch (e) {
+          // token tidak valid atau expired, abaikan saja
+        }
+      }
+    }
 
     const users = await prisma.user.findMany({
       where: {
@@ -191,10 +204,10 @@ exports.searchUsers = async (req, res) => {
         _count: {
           select: { followers: true }
         },
-        followers: {
+        followers: currentUserId ? {
           where: { followerId: currentUserId },
           select: { id: true }
-        }
+        } : false
       },
       take: 20
     });
@@ -203,7 +216,7 @@ exports.searchUsers = async (req, res) => {
       const { followers, ...rest } = user;
       return {
         ...rest,
-        isFollowing: followers.length > 0
+        isFollowing: followers ? followers.length > 0 : false
       };
     });
 
