@@ -164,3 +164,38 @@ exports.changePassword = async (req, res) => {
     res.status(500).json({ error: "Terjadi kesalahan saat mengubah password." });
   }
 };
+
+// 5. SEARCH USERS
+exports.searchUsers = async (req, res) => {
+  try {
+    const { q } = req.query;
+    if (!q) {
+      return res.json([]);
+    }
+
+    const users = await prisma.user.findMany({
+      where: {
+        OR: [
+          { username: { contains: q, mode: 'insensitive' } },
+          { name: { contains: q, mode: 'insensitive' } }
+        ]
+      },
+      select: {
+        id: true,
+        username: true,
+        name: true,
+        profileImage: true,
+        role: true,
+        _count: {
+          select: { followers: true }
+        }
+      },
+      take: 20
+    });
+
+    res.json(users);
+  } catch (error) {
+    console.error("❌ ERROR SEARCH USERS:", error);
+    res.status(500).json({ error: "Gagal mencari pengguna." });
+  }
+};

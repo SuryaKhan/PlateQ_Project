@@ -18,19 +18,15 @@ class _SearchScreenState extends State<SearchScreen> {
   Timer? _debounce;
 
   List<Recipe> _searchResults = [];
+  List<dynamic> _userResults = [];
+  int _searchType = 0; // 0: Resep, 1: Pengguna
+  
   bool _isLoading = false;
   int _page = 1;
   final int _limit = 10;
   bool _hasMore = true;
   bool _isFetchingMore = false;
   final ScrollController _scrollController = ScrollController();
-
-  final List<String> _recentSearches = [
-    "Truffle pasta",
-    "Summer salads",
-    "Slow cooker stews",
-    "Vegan desserts",
-  ];
 
   @override
   void initState() {
@@ -56,6 +52,7 @@ class _SearchScreenState extends State<SearchScreen> {
     if (query.isEmpty) {
       setState(() {
         _searchResults = [];
+        _userResults = [];
       });
       return;
     }
@@ -67,14 +64,27 @@ class _SearchScreenState extends State<SearchScreen> {
     });
 
     try {
-      final res = await http.get(Uri.parse('http://192.168.101.127:3000/api/recipes?search=$query&page=$_page&limit=$_limit'));
-      if (res.statusCode == 200) {
-        final data = jsonDecode(res.body);
-        final List list = data['data'] ?? [];
-        setState(() {
-          _searchResults = list.map((e) => Recipe.fromJson(e)).toList();
-          _hasMore = data['pagination']['hasMore'] ?? false;
-        });
+      if (_searchType == 0) {
+        // Search Recipes
+        final res = await http.get(Uri.parse('http://192.168.101.127:3000/api/recipes?search=$query&page=$_page&limit=$_limit'));
+        if (res.statusCode == 200) {
+          final data = jsonDecode(res.body);
+          final List list = data['data'] ?? [];
+          setState(() {
+            _searchResults = list.map((e) => Recipe.fromJson(e)).toList();
+            _hasMore = data['pagination']['hasMore'] ?? false;
+          });
+        }
+      } else {
+        // Search Users
+        final res = await http.get(Uri.parse('http://192.168.101.127:3000/api/users/search?q=$query'));
+        if (res.statusCode == 200) {
+          final List list = jsonDecode(res.body);
+          setState(() {
+            _userResults = list;
+            _hasMore = false; // No pagination for users yet
+          });
+        }
       }
     } catch (e) {
       debugPrint("Error searching: $e");
@@ -84,6 +94,8 @@ class _SearchScreenState extends State<SearchScreen> {
   }
 
   Future<void> _fetchMore() async {
+    if (_searchType == 1) return; // Users don't have pagination yet
+    
     setState(() => _isFetchingMore = true);
     _page++;
     try {
@@ -119,7 +131,7 @@ class _SearchScreenState extends State<SearchScreen> {
           onPressed: () => Navigator.pop(context),
         ) : const SizedBox(),
         title: const Text(
-          "Find Recipes",
+          "Cari Sesuatu",
           style: TextStyle(
             color: Color(0xFF64748B),
             fontWeight: FontWeight.bold,
@@ -152,7 +164,7 @@ class _SearchScreenState extends State<SearchScreen> {
                     });
                   },
                   decoration: InputDecoration(
-                    hintText: "Saffron risotto",
+                    hintText: _searchType == 0 ? "Cari resep... misal: Saffron risotto" : "Cari pengguna... misal: suryakhan",
                     hintStyle: const TextStyle(color: Color(0xFF475569)),
                     prefixIcon: const Icon(Icons.search, color: Color(0xFF475569)),
                     suffixIcon: _searchQuery.isNotEmpty
@@ -163,6 +175,7 @@ class _SearchScreenState extends State<SearchScreen> {
                               setState(() {
                                 _searchQuery = '';
                                 _searchResults = [];
+                                _userResults = [];
                               });
                             },
                           )
@@ -176,146 +189,84 @@ class _SearchScreenState extends State<SearchScreen> {
             ),
           ),
 
-          if (showExplore) ...[
-            // Explore UI
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Recent Searches Header
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const Text(
-                          "RECENT SEARCHES",
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.bold,
-                            color: Color(0xFF64748B),
-                            letterSpacing: 1,
-                          ),
+          // Tab Type
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 8.0),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: GestureDetector(
+                      onTap: () {
+                        setState(() {
+                          _searchType = 0;
+                        });
+                        _performSearch(_searchQuery);
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        decoration: BoxDecoration(
+                          color: _searchType == 0 ? Theme.of(context).primaryColor : Theme.of(context).colorScheme.surface,
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(color: _searchType == 0 ? Colors.transparent : Colors.grey.withAlpha(50)),
                         ),
-                        GestureDetector(
-                          onTap: () {
-                            setState(() {
-                              _recentSearches.clear();
-                            });
-                          },
-                          child: const Text(
-                            "Clear All",
+                        child: Center(
+                          child: Text(
+                            "Resep",
                             style: TextStyle(
-                              fontSize: 12,
                               fontWeight: FontWeight.bold,
-                              color: Color(0xFF1E293B),
+                              color: _searchType == 0 ? Colors.white : Colors.grey,
                             ),
                           ),
                         ),
-                      ],
-                    ),
-                    const SizedBox(height: 16),
-                    // Recent Searches Chips
-                    Wrap(
-                      spacing: 8.0,
-                      runSpacing: 8.0,
-                      children: _recentSearches.map((search) {
-                        return Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFF1F5F9),
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text(
-                                search,
-                                style: const TextStyle(fontSize: 12, color: Color(0xFF334155)),
-                              ),
-                              const SizedBox(width: 4),
-                              GestureDetector(
-                                onTap: () {
-                                  setState(() {
-                                    _recentSearches.remove(search);
-                                  });
-                                },
-                                child: const Icon(Icons.close, size: 14, color: Color(0xFF94A3B8)),
-                              ),
-                            ],
-                          ),
-                        );
-                      }).toList(),
-                    ),
-                    const SizedBox(height: 32),
-                    // Trending Now
-                    const Text(
-                      "Trending Now",
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF1E293B),
                       ),
                     ),
-                    const SizedBox(height: 16),
-                    // Editorial Choice
-                    Container(
-                      height: 240,
-                      width: double.infinity,
-                      padding: const EdgeInsets.all(20),
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(20),
-                        gradient: const LinearGradient(
-                          begin: Alignment.topCenter,
-                          end: Alignment.bottomCenter,
-                          colors: [Color(0xFFCBD5E1), Color(0xFF1E293B)],
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: GestureDetector(
+                      onTap: () {
+                        setState(() {
+                          _searchType = 1;
+                        });
+                        _performSearch(_searchQuery);
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        decoration: BoxDecoration(
+                          color: _searchType == 1 ? Theme.of(context).primaryColor : Theme.of(context).colorScheme.surface,
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(color: _searchType == 1 ? Colors.transparent : Colors.grey.withAlpha(50)),
+                        ),
+                        child: Center(
+                          child: Text(
+                            "Pengguna",
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: _searchType == 1 ? Colors.white : Colors.grey,
+                            ),
+                          ),
                         ),
                       ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisAlignment: MainAxisAlignment.end,
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                            decoration: BoxDecoration(
-                              color: Theme.of(context).colorScheme.surface,
-                              borderRadius: BorderRadius.circular(15),
-                            ),
-                            child: const Text(
-                              "EDITORIAL CHOICE",
-                              style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Color(0xFF1E293B), letterSpacing: 1),
-                            ),
-                          ),
-                          const SizedBox(height: 12),
-                          const Text(
-                            "The Ultimate\nHarvest Salad",
-                            style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.white, height: 1.2),
-                          ),
-                          const SizedBox(height: 8),
-                          const Text(
-                            "15 mins • Easy",
-                            style: TextStyle(color: Colors.white70, fontSize: 12),
-                          ),
-                        ],
-                      ),
                     ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          
+          if (showExplore) ...[
+            SliverFillRemaining(
+              child: Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.search, size: 80, color: Colors.grey.shade300),
                     const SizedBox(height: 16),
-                    // Small Cards Grid
-                    GridView.count(
-                      crossAxisCount: 2,
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      mainAxisSpacing: 16,
-                      crossAxisSpacing: 16,
-                      childAspectRatio: 0.8,
-                      children: [
-                        _buildSmallTrendingCard("Artisan Basil Pesto", "Authentic Italian"),
-                        _buildSmallTrendingCard("Cloud Donuts", "Baking & Pastry"),
-                        _buildSmallTrendingCard("Honey Layer Cake", "Russian Classics"),
-                        _buildSmallTrendingCard("Rainbow Hummus", "Plant Based"),
-                      ],
+                    Text(
+                      _searchType == 0 ? "Cari Resep Masakan" : "Cari Akun Pengguna",
+                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.grey.shade600),
                     ),
-                    const SizedBox(height: 24),
                   ],
                 ),
               ),
@@ -326,7 +277,7 @@ class _SearchScreenState extends State<SearchScreen> {
               const SliverFillRemaining(
                 child: Center(child: CircularProgressIndicator()),
               )
-            else if (_searchResults.isEmpty)
+            else if (_searchType == 0 && _searchResults.isEmpty)
               SliverFillRemaining(
                 child: Center(
                   child: Column(
@@ -341,7 +292,20 @@ class _SearchScreenState extends State<SearchScreen> {
                   ),
                 ),
               )
-            else
+            else if (_searchType == 1 && _userResults.isEmpty)
+              SliverFillRemaining(
+                child: Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.person_off, size: 64, color: Colors.grey.shade400),
+                      const SizedBox(height: 16),
+                      Text("Pengguna tidak ditemukan", style: TextStyle(fontSize: 18, color: Theme.of(context).textTheme.bodyLarge?.color, fontWeight: FontWeight.bold)),
+                    ],
+                  ),
+                ),
+              )
+            else if (_searchType == 0)
               SliverPadding(
                 padding: const EdgeInsets.symmetric(horizontal: 20.0),
                 sliver: SliverGrid(
@@ -358,6 +322,53 @@ class _SearchScreenState extends State<SearchScreen> {
                     childCount: _searchResults.length,
                   ),
                 ),
+              )
+            else
+              SliverList(
+                delegate: SliverChildBuilderDelegate(
+                  (context, index) {
+                    final user = _userResults[index];
+                    return ListTile(
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                      leading: CircleAvatar(
+                        radius: 25,
+                        backgroundColor: const Color(0xFFE2E8F0),
+                        backgroundImage: user['profileImage'] != null 
+                            ? NetworkImage('http://192.168.101.127:3000/uploads/${user['profileImage']}') 
+                            : null,
+                        child: user['profileImage'] == null 
+                            ? const Icon(Icons.person, color: Colors.grey) 
+                            : null,
+                      ),
+                      title: Row(
+                        children: [
+                          Text(user['name'] ?? user['username'], style: const TextStyle(fontWeight: FontWeight.bold)),
+                          if (user['role'] == 'ADMIN' || user['role'] == 'SUPERADMIN')
+                            const Padding(
+                              padding: EdgeInsets.only(left: 4.0),
+                              child: Icon(Icons.verified, color: Colors.blue, size: 14),
+                            ),
+                        ],
+                      ),
+                      subtitle: Text("@${user['username']}"),
+                      trailing: ElevatedButton(
+                        onPressed: () {
+                          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                            content: Text("Berhasil mengikuti pengguna!"),
+                            backgroundColor: Colors.green,
+                          ));
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF1E293B),
+                          foregroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                        ),
+                        child: const Text("Ikuti"),
+                      ),
+                    );
+                  },
+                  childCount: _userResults.length,
+                ),
               ),
 
             if (_isFetchingMore)
@@ -370,34 +381,6 @@ class _SearchScreenState extends State<SearchScreen> {
           ],
         ],
       ),
-    );
-  }
-
-  Widget _buildSmallTrendingCard(String title, String subtitle) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Expanded(
-          child: Container(
-            decoration: BoxDecoration(
-              color: const Color(0xFFE2E8F0),
-              borderRadius: BorderRadius.circular(15),
-            ),
-          ),
-        ),
-        const SizedBox(height: 8),
-        Text(
-          title,
-          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Color(0xFF1E293B)),
-          maxLines: 2,
-          overflow: TextOverflow.ellipsis,
-        ),
-        const SizedBox(height: 4),
-        Text(
-          subtitle,
-          style: const TextStyle(color: Colors.grey, fontSize: 12),
-        ),
-      ],
     );
   }
 }
