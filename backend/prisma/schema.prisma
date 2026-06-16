@@ -41,6 +41,18 @@ model User {
   notifications Notification[]
 }
 
+// 9. MODEL APP VERSION (In-App Updates)
+// Menyimpan informasi pembaruan versi aplikasi
+model AppVersion {
+  id            Int      @id @default(autoincrement())
+  versionString String   // contoh: "1.0.1"
+  buildNumber   Int      // contoh: 2 (sebagai penanda teknis pembaruan)
+  releaseNotes  String?  // Catatan rilis/fitur baru
+  apkUrl        String   // Link download file APK (Google Drive/Mediafire)
+  isMandatory   Boolean  @default(false) // Jika true, user tidak bisa skip update
+  createdAt     DateTime @default(now())
+}
+
 // 2. MODEL RECIPE
 // Jantung aplikasi Plate'Q. Disesuaikan dengan mockup Explore.
 model Recipe {

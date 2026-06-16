@@ -4,11 +4,12 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../services/recipe_service.dart';
+import '../services/social_service.dart';
+import '../services/update_service.dart';
 import '../models/recipe_model.dart';
 
 import '../screens/notification_screen.dart';
 import '../theme/theme_manager.dart';
-import '../widgets/update_dialog.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -31,6 +32,11 @@ class _HomeScreenState extends State<HomeScreen> {
     _fetchRecipes();
     _checkNotificationsLocal();
     _checkNotificationsFromServer(); // Fetch pertama kali
+    
+    // Mengecek versi aplikasi di background
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      UpdateService.checkUpdate(context);
+    });
     
     // Polling tiap 5 detik untuk mensimulasikan Push Notification (Pop-up)
     _pollingTimer = Timer.periodic(const Duration(seconds: 5), (timer) {
@@ -81,14 +87,7 @@ class _HomeScreenState extends State<HomeScreen> {
           if (mounted && newNotif['isRead'] == false) {
             final String messageText = newNotif['message'] ?? 'Ada pemberitahuan baru!';
             
-            // Cek jika ini adalah pengumuman Update APK
-            if (messageText.contains('[UPDATE APK]')) {
-              showDialog(
-                context: context,
-                builder: (context) => const UpdateDialog(),
-              );
-            } else {
-              // Tampilkan Pop-Up Dialog Biasa
+            // Tampilkan Pop-Up Dialog Biasa
               String titleStr = "Pemberitahuan Baru";
               if (newNotif['type'] == 'SUPERADMIN_ANNOUNCEMENT') {
                 titleStr = "📢 Pengumuman Penting!";
@@ -120,7 +119,6 @@ class _HomeScreenState extends State<HomeScreen> {
                   ],
                 )
               );
-            }
           }
         }
         _lastNotificationCount = notifs.length;

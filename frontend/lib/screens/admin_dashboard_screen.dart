@@ -199,6 +199,9 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
             _buildActionRow(context, "Kirim Pengumuman", "Kirim notifikasi global via email/banner", Icons.campaign, onTap: () {
               _showAnnouncementDialog(context);
             }),
+            _buildActionRow(context, "Publish Update Aplikasi", "Wajibkan user untuk update APK", Icons.system_update, onTap: () {
+              _showPublishUpdateDialog(context);
+            }),
             const SizedBox(height: 40),
           ],
         ),
@@ -337,6 +340,99 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                   }
                 }, 
                 child: const Text("Sebarkan!")
+              ),
+            ],
+          );
+        }
+      )
+    );
+  }
+
+  void _showPublishUpdateDialog(BuildContext context) {
+    final versionController = TextEditingController();
+    final buildNumberController = TextEditingController();
+    final releaseNotesController = TextEditingController();
+    final apkUrlController = TextEditingController();
+    bool isMandatory = false;
+
+    showDialog(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setState) {
+          return AlertDialog(
+            title: const Text("Publish Update Aplikasi"),
+            content: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextField(
+                    controller: versionController,
+                    decoration: const InputDecoration(labelText: "Versi (ex: 1.0.1)"),
+                  ),
+                  const SizedBox(height: 8),
+                  TextField(
+                    controller: buildNumberController,
+                    decoration: const InputDecoration(labelText: "Build Number (ex: 2)"),
+                    keyboardType: TextInputType.number,
+                  ),
+                  const SizedBox(height: 8),
+                  TextField(
+                    controller: releaseNotesController,
+                    decoration: const InputDecoration(labelText: "Release Notes"),
+                    maxLines: 3,
+                  ),
+                  const SizedBox(height: 8),
+                  TextField(
+                    controller: apkUrlController,
+                    decoration: const InputDecoration(labelText: "APK Download URL (G-Drive/Mediafire)"),
+                  ),
+                  const SizedBox(height: 8),
+                  CheckboxListTile(
+                    title: const Text("Mandatory Update?"),
+                    value: isMandatory,
+                    onChanged: (val) => setState(() => isMandatory = val ?? false),
+                    contentPadding: EdgeInsets.zero,
+                  ),
+                ],
+              ),
+            ),
+            actions: [
+              TextButton(onPressed: () => Navigator.pop(context), child: const Text("Batal", style: TextStyle(color: Colors.grey))),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFD4AF37), foregroundColor: Colors.white),
+                onPressed: () async {
+                  final prefs = await SharedPreferences.getInstance();
+                  final token = prefs.getString('jwt_token') ?? '';
+                  try {
+                    final response = await http.post(
+                      Uri.parse('http://192.168.101.127:3000/api/app/version'),
+                      headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer $token'
+                      },
+                      body: jsonEncode({
+                        'versionString': versionController.text,
+                        'buildNumber': int.tryParse(buildNumberController.text) ?? 1,
+                        'releaseNotes': releaseNotesController.text,
+                        'apkUrl': apkUrlController.text,
+                        'isMandatory': isMandatory,
+                      }),
+                    );
+                    
+                    if (!context.mounted) return;
+                    
+                    if (response.statusCode == 201) {
+                       Navigator.pop(context);
+                       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Pembaruan berhasil dipublish!")));
+                    } else {
+                       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Gagal: ${response.body}")));
+                    }
+                  } catch (e) {
+                    if (!context.mounted) return;
+                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Error: $e")));
+                  }
+                }, 
+                child: const Text("Publish")
               ),
             ],
           );
