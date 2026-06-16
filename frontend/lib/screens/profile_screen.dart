@@ -150,7 +150,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       radius: 55,
                       backgroundColor: const Color(0xFFE2E8F0),
                       backgroundImage: user['profileImage'] != null 
-                          ? NetworkImage('http://192.168.101.127:3000/uploads/${user['profileImage']}') 
+                          ? NetworkImage('http://localhost:3000/uploads/${user['profileImage']}') 
                           : null,
                       child: user['profileImage'] == null 
                           ? const Icon(Icons.person, size: 55, color: Colors.grey) 
@@ -429,7 +429,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         shape: BoxShape.circle,
                         image: _profileData!['profileImage'] != null 
                             ? DecorationImage(
-                                image: NetworkImage('http://192.168.101.127:3000/uploads/${_profileData!['profileImage']}'),
+                                image: NetworkImage('http://localhost:3000/uploads/${_profileData!['profileImage']}'),
                                 fit: BoxFit.cover,
                               )
                             : null,
@@ -497,7 +497,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(20),
                   child: Image.network(
-                    'http://192.168.101.127:3000/uploads/${recipe.image}',
+                    'http://localhost:3000/uploads/${recipe.image}',
                     fit: BoxFit.cover,
                     colorBlendMode: BlendMode.darken,
                     color: Colors.black.withAlpha(80),
