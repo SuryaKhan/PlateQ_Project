@@ -64,7 +64,11 @@ exports.getProfile = async (req, res) => {
       include: {
         recipes: true, // Resepku
         likes: {       // Favoritku (Bookmark)
-          include: { recipe: true }
+          include: { 
+            recipe: {
+              include: { author: true }
+            }
+          }
         },
         comments: {    // Komentarku
           include: { recipe: true }

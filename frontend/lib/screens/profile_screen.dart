@@ -82,6 +82,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
       cookingTime: r['cookingTime'] ?? '30 Min',
     )).toList();
 
+    final List<dynamic> favRecipesRaw = user['favoriteRecipes'] ?? [];
+    final List<Recipe> favoriteRecipes = favRecipesRaw.map((r) => Recipe(
+      id: r['id'],
+      title: r['title'],
+      content: r['content'],
+      authorName: r['author']?['name'] ?? r['author']?['username'] ?? 'User',
+      authorRole: r['author']?['role'] ?? 'USER',
+      image: r['image'],
+      difficulty: r['difficulty'] ?? 'Mudah',
+      cookingTime: r['cookingTime'] ?? '30 Min',
+    )).toList();
+
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
@@ -258,7 +270,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     children: [
                       _buildTabButton(0, "Resepku", Icons.restaurant_menu),
                       const SizedBox(width: 8),
-                      _buildTabButton(1, "Koleksi", Icons.folder_special_outlined),
+                      _buildTabButton(1, "Favorit", Icons.bookmark),
                       const SizedBox(width: 8),
                       _buildTabButton(2, "Komentar", Icons.chat_bubble_outline),
                     ],
@@ -270,7 +282,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
           
           // Tab Content
-          _buildTabContent(myRecipes),
+          _buildTabContent(myRecipes, favoriteRecipes),
         ],
       ),
     );
@@ -310,7 +322,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  Widget _buildTabContent(List<Recipe> myRecipes) {
+  Widget _buildTabContent(List<Recipe> myRecipes, List<Recipe> favoriteRecipes) {
     if (_selectedTabIndex == 0) {
       // Tab Resepku (Grid)
       return SliverPadding(
@@ -333,47 +345,25 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ),
       );
     } else if (_selectedTabIndex == 1) {
-      // Tab Koleksi (Folders)
-      final collections = ["Menu Diet", "Ide Bekal Anak", "Resep Tanggal Tua", "Comfort Food"];
+      // Tab Favorit (Grid)
       return SliverPadding(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-        sliver: SliverGrid(
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 2,
-            crossAxisSpacing: 16,
-            mainAxisSpacing: 16,
-            childAspectRatio: 1.0,
-          ),
-          delegate: SliverChildBuilderDelegate(
-            (context, index) {
-              return Container(
-                decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.surface,
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: Colors.grey.withAlpha(50)),
-                  boxShadow: [
-                    BoxShadow(color: Colors.black.withAlpha(10), blurRadius: 10, offset: const Offset(0, 5)),
-                  ],
-                ),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(Icons.folder, size: 50, color: Theme.of(context).primaryColor),
-                    const SizedBox(height: 12),
-                    Text(
-                      collections[index], 
-                      style: TextStyle(fontWeight: FontWeight.bold, color: Theme.of(context).textTheme.bodyLarge?.color), 
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: 4),
-                    const Text("12 Resep", style: TextStyle(fontSize: 12, color: Colors.grey)),
-                  ],
-                ),
-              );
-            },
-            childCount: collections.length,
-          ),
-        ),
+        sliver: favoriteRecipes.isEmpty 
+          ? const SliverToBoxAdapter(child: Center(child: Text("Belum ada resep favorit.")))
+          : SliverGrid(
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 2,
+                crossAxisSpacing: 16,
+                mainAxisSpacing: 16,
+                childAspectRatio: 0.8,
+              ),
+              delegate: SliverChildBuilderDelegate(
+                (context, index) {
+                  return _buildGridCard(favoriteRecipes[index], showFavoriteIcon: true);
+                },
+                childCount: favoriteRecipes.length,
+              ),
+            ),
       );
     } else {
       // Tab Komentar (Real dari DB)
