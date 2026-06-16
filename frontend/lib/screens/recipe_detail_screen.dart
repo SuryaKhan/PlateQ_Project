@@ -92,7 +92,7 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
       if (success) {
         _fetchComments(); // Refresh with real data
       } else {
-        if (!context.mounted) return;
+        if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Gagal mengirim komentar.")));
         // Rollback optimistic update
         setState(() {
@@ -120,7 +120,7 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
       if (success) {
         _fetchComments();
       } else {
-        if (!context.mounted) return;
+        if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Gagal menghapus komentar.")));
       }
     }
