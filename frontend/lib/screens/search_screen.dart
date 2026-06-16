@@ -77,7 +77,7 @@ class _SearchScreenState extends State<SearchScreen> {
     try {
       if (_searchType == 0) {
         // Search Recipes
-        final res = await http.get(Uri.parse('http://localhost:3000/api/recipes?search=$query&page=$_page&limit=$_limit'));
+        final res = await http.get(Uri.parse('http://192.168.101.127:3000/api/recipes?search=$query&page=$_page&limit=$_limit'));
         if (res.statusCode == 200) {
           final data = jsonDecode(res.body);
           final List list = data['data'] ?? [];
@@ -93,7 +93,7 @@ class _SearchScreenState extends State<SearchScreen> {
         }
         
         final res = await http.get(
-          Uri.parse('http://localhost:3000/api/users/search?q=$query'),
+          Uri.parse('http://192.168.101.127:3000/api/users/search?q=$query'),
           headers: _token != null ? {'Authorization': 'Bearer $_token'} : {},
         );
         if (res.statusCode == 200) {
@@ -117,7 +117,7 @@ class _SearchScreenState extends State<SearchScreen> {
     setState(() => _isFetchingMore = true);
     _page++;
     try {
-      final res = await http.get(Uri.parse('http://localhost:3000/api/recipes?search=$_searchQuery&page=$_page&limit=$_limit'));
+      final res = await http.get(Uri.parse('http://192.168.101.127:3000/api/recipes?search=$_searchQuery&page=$_page&limit=$_limit'));
       if (res.statusCode == 200) {
         final data = jsonDecode(res.body);
         final List list = data['data'] ?? [];
@@ -352,7 +352,7 @@ class _SearchScreenState extends State<SearchScreen> {
                         radius: 25,
                         backgroundColor: const Color(0xFFE2E8F0),
                         backgroundImage: user['profileImage'] != null 
-                            ? NetworkImage('http://localhost:3000/uploads/${user['profileImage']}') 
+                            ? NetworkImage('http://192.168.101.127:3000/uploads/${user['profileImage']}') 
                             : null,
                         child: user['profileImage'] == null 
                             ? const Icon(Icons.person, color: Colors.grey) 

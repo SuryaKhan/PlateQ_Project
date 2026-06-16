@@ -254,7 +254,7 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
                             widget.recipe.image!.isNotEmpty)
                       ? DecorationImage(
                           image: NetworkImage(
-                            "http://localhost:3000/uploads/${widget.recipe.image}",
+                            "http://192.168.101.127:3000/uploads/${widget.recipe.image}",
                           ),
                           fit: BoxFit.cover,
                         )
