@@ -4,7 +4,6 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../services/recipe_service.dart';
-import '../services/social_service.dart';
 import '../services/update_service.dart';
 import '../models/recipe_model.dart';
 
