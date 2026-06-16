@@ -228,9 +228,12 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
           ],
         ),
       ),
-      body: Stack(
-        children: [
-          // --- 1. Konten Scrollable Utama ---
+      body: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 600),
+          child: Stack(
+            children: [
+              // --- 1. Konten Scrollable Utama ---
           SingleChildScrollView(
             child: Stack(
               children: [
@@ -606,6 +609,8 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
           ),
         ],
       ),
+    ),
+    ),
     );
   }
 

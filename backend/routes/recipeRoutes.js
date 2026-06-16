@@ -21,6 +21,20 @@ const upload = multer({ storage: storage });
 
 // --- ROUTES ---
 router.get('/', getAllRecipes);
+router.get('/seed-categories', async (req, res) => {
+  const prisma = require('../db');
+  await prisma.category.createMany({
+    data: [
+      { id: 1, name: 'Nasi' },
+      { id: 2, name: 'Mie' },
+      { id: 3, name: 'Minuman' },
+      { id: 4, name: 'Dessert' }
+    ],
+    skipDuplicates: true
+  });
+  await prisma.recipe.updateMany({ data: { categoryId: 1 } });
+  res.json({ message: 'Seeded!' });
+});
 
 // Tambahkan upload.single('image') di sini. 'image' adalah nama field dari Flutter nanti
 router.post('/', authenticateToken, upload.single('image'), createRecipe);
