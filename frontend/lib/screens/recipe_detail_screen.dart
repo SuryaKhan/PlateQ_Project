@@ -701,7 +701,10 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                         setState(() {
                           _replyingToCommentId = id;
                           _replyingToUsername = name;
-                          _commentController.clear();
+                          _commentController.text = "@$name ";
+                          _commentController.selection = TextSelection.fromPosition(
+                            TextPosition(offset: _commentController.text.length),
+                          );
                         });
                         _commentFocusNode.requestFocus();
                       },
