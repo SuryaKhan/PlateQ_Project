@@ -131,6 +131,30 @@ class RecipeService {
     }
   } // <-- Tutup updateRecipe()
 
+  static Future<bool> deleteRecipe(int id) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('jwt_token');
+
+      final response = await http.delete(
+        Uri.parse('$baseUrl/$id'),
+        headers: {
+          'Authorization': 'Bearer $token',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        return true;
+      } else {
+        debugPrint("Gagal hapus resep. Status: ${response.statusCode}");
+        return false;
+      }
+    } catch (e) {
+      debugPrint("Error Delete Resep: $e");
+      return false;
+    }
+  }
+
   // 6. Ambil Komentar
   static Future<List<Map<String, dynamic>>> fetchComments(int recipeId) async {
     try {

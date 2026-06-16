@@ -140,6 +140,34 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
     }
   }
 
+  Future<void> _confirmDelete() async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text("Hapus Resep"),
+        content: const Text("Apakah kamu yakin ingin menghapus resep ini?"),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text("Batal")),
+          TextButton(onPressed: () => Navigator.pop(context, true), child: const Text("Hapus", style: TextStyle(color: Colors.red))),
+        ],
+      ),
+    );
+
+    if (confirm == true) {
+      final success = await RecipeService.deleteRecipe(widget.recipe.id);
+      if (success) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Resep berhasil dihapus")));
+          Navigator.pop(context, true); // Return true to refresh parent
+        }
+      } else {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Gagal menghapus resep")));
+        }
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     // Parsing content JSON if available
@@ -602,22 +630,37 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                       ),
                     ),
                     if (_currentUsername != null && widget.recipe.authorName == _currentUsername)
-                      Container(
-                        decoration: BoxDecoration(
-                          color: Colors.white.withAlpha(220),
-                          shape: BoxShape.circle,
-                        ),
-                        child: IconButton(
-                          icon: const Icon(Icons.edit, color: Colors.black),
-                          onPressed: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => EditRecipeScreen(recipe: widget.recipe),
-                              ),
-                            );
-                          },
-                        ),
+                      Row(
+                        children: [
+                          Container(
+                            decoration: BoxDecoration(
+                              color: Colors.white.withAlpha(220),
+                              shape: BoxShape.circle,
+                            ),
+                            child: IconButton(
+                              icon: const Icon(Icons.edit, color: Colors.black),
+                              onPressed: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => EditRecipeScreen(recipe: widget.recipe),
+                                  ),
+                                );
+                              },
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Container(
+                            decoration: BoxDecoration(
+                              color: Colors.white.withAlpha(220),
+                              shape: BoxShape.circle,
+                            ),
+                            child: IconButton(
+                              icon: const Icon(Icons.delete, color: Colors.red),
+                              onPressed: _confirmDelete,
+                            ),
+                          ),
+                        ],
                       ),
                   ],
                 ),

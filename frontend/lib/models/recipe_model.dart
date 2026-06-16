@@ -6,6 +6,7 @@ class Recipe {
   final String cookingTime;
   final String authorName;
   final String authorRole;
+  final int? authorId;
   final String? image;
   final String? categoryName;
 
@@ -17,6 +18,7 @@ class Recipe {
     required this.cookingTime,
     required this.authorName,
     required this.authorRole,
+    this.authorId,
     this.image,
     this.categoryName,
   });
@@ -31,6 +33,7 @@ class Recipe {
       image: json['image'],
       authorName: json['author']?['name'] ?? json['author']?['username'] ?? 'Unknown',
       authorRole: json['author']?['role'] ?? 'USER',
+      authorId: json['author']?['id'] ?? json['authorId'],
       categoryName: json['category']?['name'],
     );
   }
