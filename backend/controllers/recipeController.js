@@ -195,14 +195,15 @@ const toggleBookmark = async (req, res) => {
 const addComment = async (req, res) => {
   try {
     const { id } = req.params;
-    const { text } = req.body;
+    const { text, parentId } = req.body;
     const userId = req.user.userId;
 
     const comment = await prisma.comment.create({
       data: {
         text,
         recipeId: parseInt(id),
-        userId
+        userId,
+        parentId: parentId ? parseInt(parentId) : null
       },
       include: { user: { select: { name: true, username: true, profileImage: true } } }
     });
@@ -216,8 +217,17 @@ const getComments = async (req, res) => {
   try {
     const { id } = req.params;
     const comments = await prisma.comment.findMany({
-      where: { recipeId: parseInt(id) },
-      include: { user: { select: { name: true, username: true, profileImage: true } } },
+      where: { 
+        recipeId: parseInt(id),
+        parentId: null // Hanya ambil parent comment (root)
+      },
+      include: { 
+        user: { select: { name: true, username: true, profileImage: true } },
+        replies: {
+          include: { user: { select: { name: true, username: true, profileImage: true } } },
+          orderBy: { createdAt: 'asc' } // Balasan urut dari lama ke baru
+        }
+      },
       orderBy: { createdAt: 'desc' }
     });
     res.json(comments);

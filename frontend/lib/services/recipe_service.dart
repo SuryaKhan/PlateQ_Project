@@ -141,10 +141,15 @@ class RecipeService {
   }
 
   // 7. Tambah Komentar
-  static Future<bool> addComment(int recipeId, String text) async {
+  static Future<bool> addComment(int recipeId, String text, {int? parentId}) async {
     try {
       final prefs = await SharedPreferences.getInstance();
       final token = prefs.getString('jwt_token');
+
+      final Map<String, dynamic> bodyData = {'text': text};
+      if (parentId != null) {
+        bodyData['parentId'] = parentId;
+      }
 
       final response = await http.post(
         Uri.parse('$baseUrl/$recipeId/comments'),
@@ -152,7 +157,7 @@ class RecipeService {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token',
         },
-        body: jsonEncode({'text': text}),
+        body: jsonEncode(bodyData),
       );
 
       return response.statusCode == 201;

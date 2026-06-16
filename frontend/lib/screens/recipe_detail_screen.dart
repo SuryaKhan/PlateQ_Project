@@ -20,6 +20,9 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
   String? _currentUsername;
   bool _isFavorited = false;
   
+  int? _replyingToCommentId;
+  String? _replyingToUsername;
+
   List<Map<String, dynamic>> _comments = [];
 
   @override
@@ -52,18 +55,22 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
     _commentController.clear();
     FocusScope.of(context).unfocus();
 
-    // Optimistic UI update
-    final tempComment = {
-      "text": text,
-      "user": {"name": _currentUsername ?? "Kamu", "profileImage": null},
-      "createdAt": DateTime.now().toIso8601String()
-    };
+    final parentId = _replyingToCommentId;
+
     setState(() {
-      _comments.insert(0, tempComment);
+      _comments.insert(0, {
+        'id': 0,
+        'user': {'name': _currentUsername ?? 'Kamu'},
+        'text': text,
+        'createdAt': 'Baru saja',
+        'replies': []
+      });
+      _replyingToCommentId = null;
+      _replyingToUsername = null;
     });
 
     // Send to backend
-    bool success = await RecipeService.addComment(widget.recipe.id, text);
+    bool success = await RecipeService.addComment(widget.recipe.id, text, parentId: parentId);
       if (success) {
         _fetchComments(); // Refresh with real data
       } else {
@@ -110,52 +117,72 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
 
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      bottomNavigationBar: Padding(
+      bottomNavigationBar: Container(
         padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-          decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.surface,
-            boxShadow: [BoxShadow(color: Colors.black.withAlpha(10), blurRadius: 10, offset: const Offset(0, -5))],
-          ),
-          child: SafeArea(
-            child: Row(
-              children: [
-                CircleAvatar(radius: 18, backgroundColor: Colors.grey.shade300),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    decoration: BoxDecoration(
-                      color: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF2D3748) : const Color(0xFFF1F5F9),
-                      borderRadius: BorderRadius.circular(25),
-                    ),
-                    child: TextField(
-                      controller: _commentController,
-                      focusNode: _commentFocusNode,
-                      decoration: const InputDecoration(
-                        hintText: "Tulis komentar...",
-                        hintStyle: TextStyle(color: Colors.grey, fontSize: 14),
-                        border: InputBorder.none,
-                        contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                      ),
-                      style: TextStyle(color: Theme.of(context).textTheme.bodyLarge?.color),
-                      onSubmitted: (_) => _addComment(),
-                    ),
-                  ),
+        color: Theme.of(context).colorScheme.surface,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (_replyingToUsername != null)
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                color: Theme.of(context).brightness == Brightness.dark ? Colors.grey.shade900 : Colors.grey.shade200,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text("Membalas $_replyingToUsername...", style: const TextStyle(color: Colors.grey, fontSize: 12)),
+                    GestureDetector(
+                      onTap: () {
+                        setState(() {
+                          _replyingToCommentId = null;
+                          _replyingToUsername = null;
+                        });
+                      },
+                      child: const Icon(Icons.close, size: 16, color: Colors.grey),
+                    )
+                  ],
                 ),
-                const SizedBox(width: 12),
-                GestureDetector(
-                  onTap: _addComment,
-                  child: Container(
-                    padding: const EdgeInsets.all(10),
-                    decoration: const BoxDecoration(color: Color(0xFF1E293B), shape: BoxShape.circle),
-                    child: const Icon(Icons.send, color: Colors.white, size: 18),
+              ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              child: Row(
+                children: [
+                  CircleAvatar(radius: 18, backgroundColor: Colors.grey.shade300),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF2D3748) : const Color(0xFFF1F5F9),
+                        borderRadius: BorderRadius.circular(25),
+                      ),
+                      child: TextField(
+                        controller: _commentController,
+                        focusNode: _commentFocusNode,
+                        decoration: const InputDecoration(
+                          hintText: "Tulis komentar...",
+                          hintStyle: TextStyle(color: Colors.grey, fontSize: 14),
+                          border: InputBorder.none,
+                          contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                        ),
+                        style: TextStyle(color: Theme.of(context).textTheme.bodyLarge?.color),
+                        onSubmitted: (_) => _addComment(),
+                      ),
+                    ),
                   ),
-                )
-              ],
+                  const SizedBox(width: 12),
+                  GestureDetector(
+                    onTap: _addComment,
+                    child: Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: const BoxDecoration(color: Color(0xFF1E293B), shape: BoxShape.circle),
+                      child: const Icon(Icons.send, color: Colors.white, size: 18),
+                    ),
+                  )
+                ],
+              ),
             ),
-          ),
+          ],
         ),
       ),
       body: Stack(
@@ -426,10 +453,36 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                           final text = c['text'] ?? '';
                           final timeStr = c['createdAt'] ?? '';
                           final time = timeStr.length > 10 ? timeStr.substring(0, 10) : 'Baru saja';
+                          final commentId = c['id'] as int? ?? 0;
+                          final replies = c['replies'] as List<dynamic>? ?? [];
                           
-                          return Padding(
-                            padding: const EdgeInsets.only(bottom: 16.0),
-                            child: _buildCommentRow(name, time, text),
+                          return Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Padding(
+                                padding: const EdgeInsets.only(bottom: 16.0),
+                                child: _buildCommentRow(commentId, name, time, text),
+                              ),
+                              if (replies.isNotEmpty)
+                                Padding(
+                                  padding: const EdgeInsets.only(left: 40.0, bottom: 8.0),
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: replies.map((r) {
+                                      final rUser = r['user'] ?? {};
+                                      final rName = rUser['name'] ?? 'Pengguna';
+                                      final rText = r['text'] ?? '';
+                                      final rTimeStr = r['createdAt'] ?? '';
+                                      final rTime = rTimeStr.length > 10 ? rTimeStr.substring(0, 10) : 'Baru saja';
+                                      final rId = r['id'] as int? ?? 0;
+                                      return Padding(
+                                        padding: const EdgeInsets.only(bottom: 16.0),
+                                        child: _buildCommentRow(rId, rName, rTime, rText, isReply: true),
+                                      );
+                                    }).toList(),
+                                  ),
+                                ),
+                            ],
                           );
                         }),
                         const SizedBox(height: 100), // Spasi untuk bottom sheet
@@ -598,11 +651,11 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
     );
   }
 
-  Widget _buildCommentRow(String name, String time, String comment) {
+  Widget _buildCommentRow(int id, String name, String time, String comment, {bool isReply = false}) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        CircleAvatar(radius: 16, backgroundColor: Colors.grey.shade300),
+        CircleAvatar(radius: isReply ? 12 : 16, backgroundColor: Colors.grey.shade300),
         const SizedBox(width: 12),
         Expanded(
           child: Column(
@@ -610,29 +663,32 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
             children: [
               Row(
                 children: [
-                  Text(name, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Theme.of(context).colorScheme.onSurface)),
+                  Text(name, style: TextStyle(fontWeight: FontWeight.bold, fontSize: isReply ? 13 : 14, color: Theme.of(context).colorScheme.onSurface)),
                   const SizedBox(width: 8),
                   Text(time, style: const TextStyle(color: Colors.grey, fontSize: 11)),
                 ],
               ),
               const SizedBox(height: 4),
-              Text(comment, style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withAlpha(200), fontSize: 14, height: 1.4)),
+              Text(comment, style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withAlpha(200), fontSize: isReply ? 13 : 14, height: 1.4)),
               const SizedBox(height: 4),
-              GestureDetector(
-                onTap: () {
-                  setState(() {
-                    _commentController.text = "@$name ";
-                  });
-                  _commentFocusNode.requestFocus();
-                },
-                child: Row(
-                  children: [
-                    const Icon(Icons.reply, size: 14, color: Colors.grey),
-                    const SizedBox(width: 4),
-                    const Text("Balas", style: TextStyle(color: Colors.grey, fontSize: 12, fontWeight: FontWeight.bold)),
-                  ],
-                ),
-              )
+              if (!isReply) // Hanya bisa membalas komentar utama (1 level)
+                GestureDetector(
+                  onTap: () {
+                    setState(() {
+                      _replyingToCommentId = id;
+                      _replyingToUsername = name;
+                      _commentController.clear();
+                    });
+                    _commentFocusNode.requestFocus();
+                  },
+                  child: Row(
+                    children: [
+                      const Icon(Icons.reply, size: 14, color: Colors.grey),
+                      const SizedBox(width: 4),
+                      const Text("Balas", style: TextStyle(color: Colors.grey, fontSize: 12, fontWeight: FontWeight.bold)),
+                    ],
+                  ),
+                )
             ],
           ),
         )
