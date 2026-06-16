@@ -124,6 +124,8 @@ class RecipeService {
       debugPrint("Error Update Resep: $e");
       return false;
     }
+  } // <-- Tutup updateRecipe()
+
   // 6. Ambil Komentar
   static Future<List<Map<String, dynamic>>> fetchComments(int recipeId) async {
     try {

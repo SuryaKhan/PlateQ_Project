@@ -260,7 +260,17 @@ class _HomeScreenState extends State<HomeScreen> {
                       return const Center(child: Text("Belum ada resep."));
                     }
 
-                    final recipes = snapshot.data!;
+                    final allRecipes = snapshot.data!;
+                    List<Recipe> recipes = allRecipes;
+                    if (_selectedCategoryIndex != 0) {
+                      final selectedCategoryName = _categories[_selectedCategoryIndex];
+                      recipes = allRecipes.where((r) => r.categoryName == selectedCategoryName).toList();
+                    }
+
+                    if (recipes.isEmpty) {
+                      return const Center(child: Text("Belum ada resep di kategori ini."));
+                    }
+
                     return RefreshIndicator(
                       onRefresh: () async { _fetchRecipes(); },
                       child: GridView.builder(

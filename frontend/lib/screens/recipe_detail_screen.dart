@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/recipe_model.dart';
+import '../services/recipe_service.dart';
 import 'edit_recipe_screen.dart';
 
 class RecipeDetailScreen extends StatefulWidget {
