@@ -14,7 +14,14 @@ const createRecipe = async (req, res) => {
     let categoryIdToSave = null;
     let inputCat = categoryId || category;
     if (inputCat && !isNaN(parseInt(inputCat))) {
-      categoryIdToSave = parseInt(inputCat);
+      const parsedCatId = parseInt(inputCat);
+      // Validasi apakah kategori ini benar-benar ada di database
+      const categoryExists = await prisma.category.findUnique({
+        where: { id: parsedCatId }
+      });
+      if (categoryExists) {
+        categoryIdToSave = parsedCatId;
+      }
     }
 
     const newRecipe = await prisma.recipe.create({
