@@ -7,7 +7,7 @@ class SocialService {
 
   static Future<Map<String, dynamic>> toggleFollow(int userId) async {
     final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString('token');
+    final token = prefs.getString('jwt_token');
     
     if (token == null) throw Exception('No token found');
 

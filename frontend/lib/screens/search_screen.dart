@@ -47,7 +47,7 @@ class _SearchScreenState extends State<SearchScreen> {
   Future<void> _loadToken() async {
     final prefs = await SharedPreferences.getInstance();
     setState(() {
-      _token = prefs.getString('token');
+      _token = prefs.getString('jwt_token');
     });
   }
 
@@ -89,7 +89,7 @@ class _SearchScreenState extends State<SearchScreen> {
       } else {
         if (_token == null) {
           final prefs = await SharedPreferences.getInstance();
-          _token = prefs.getString('token');
+          _token = prefs.getString('jwt_token');
         }
         
         final res = await http.get(
