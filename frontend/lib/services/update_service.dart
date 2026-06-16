@@ -5,7 +5,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../core/config/app_config.dart';
 
 class UpdateService {
-  static const String baseUrl = 'http://192.168.101.127:3000/api/app';
+  static const String baseUrl = 'https://plateq-backend.onrender.com/api/app';
 
   static Future<void> checkUpdate(BuildContext context) async {
     try {

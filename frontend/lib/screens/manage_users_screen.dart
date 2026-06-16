@@ -26,7 +26,7 @@ class _ManageUsersScreenState extends State<ManageUsersScreen> {
       final token = prefs.getString('jwt_token') ?? '';
       
       final response = await http.get(
-        Uri.parse('http://192.168.101.127:3000/api/admin/users'),
+        Uri.parse('https://plateq-backend.onrender.com/api/admin/users'),
         headers: {'Authorization': 'Bearer $token'}
       );
 
@@ -71,7 +71,7 @@ class _ManageUsersScreenState extends State<ManageUsersScreen> {
       final token = prefs.getString('jwt_token') ?? '';
       
       final response = await http.delete(
-        Uri.parse('http://192.168.101.127:3000/api/admin/users/$id'),
+        Uri.parse('https://plateq-backend.onrender.com/api/admin/users/$id'),
         headers: {'Authorization': 'Bearer $token'}
       );
 
@@ -132,7 +132,7 @@ class _ManageUsersScreenState extends State<ManageUsersScreen> {
                             backgroundImage: user['profileImage'] != null 
                               ? NetworkImage(user['profileImage'].toString().startsWith('http') 
                                   ? user['profileImage'] 
-                                  : 'http://192.168.101.127:3000${user['profileImage']}') 
+                                  : 'https://plateq-backend.onrender.com${user['profileImage']}') 
                               : null,
                             child: user['profileImage'] == null ? Icon(Icons.person, color: Colors.grey[500], size: 30) : null,
                           ),

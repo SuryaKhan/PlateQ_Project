@@ -26,7 +26,7 @@ class _ManageRecipesScreenState extends State<ManageRecipesScreen> {
       final token = prefs.getString('jwt_token') ?? '';
       
       final response = await http.get(
-        Uri.parse('http://192.168.101.127:3000/api/admin/recipes'),
+        Uri.parse('https://plateq-backend.onrender.com/api/admin/recipes'),
         headers: {'Authorization': 'Bearer $token'}
       );
 
@@ -71,7 +71,7 @@ class _ManageRecipesScreenState extends State<ManageRecipesScreen> {
       final token = prefs.getString('jwt_token') ?? '';
       
       final response = await http.delete(
-        Uri.parse('http://192.168.101.127:3000/api/admin/recipes/$id'),
+        Uri.parse('https://plateq-backend.onrender.com/api/admin/recipes/$id'),
         headers: {'Authorization': 'Bearer $token'}
       );
 
@@ -131,7 +131,7 @@ class _ManageRecipesScreenState extends State<ManageRecipesScreen> {
                                 ? Image.network(
                                     recipe['image'].toString().startsWith('http') 
                                         ? recipe['image'] 
-                                        : 'http://192.168.101.127:3000${recipe['image']}',
+                                        : 'https://plateq-backend.onrender.com${recipe['image']}',
                                     fit: BoxFit.cover,
                                     errorBuilder: (context, error, stackTrace) => const Icon(Icons.broken_image, color: Colors.grey),
                                   )

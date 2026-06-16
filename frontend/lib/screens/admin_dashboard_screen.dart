@@ -34,7 +34,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
       final token = prefs.getString('jwt_token') ?? '';
       
       final response = await http.get(
-        Uri.parse('http://192.168.101.127:3000/api/admin/stats'),
+        Uri.parse('https://plateq-backend.onrender.com/api/admin/stats'),
         headers: {
           'Authorization': 'Bearer $token'
         }
@@ -314,7 +314,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                   final token = prefs.getString('jwt_token') ?? '';
                   try {
                     final response = await http.post(
-                      Uri.parse('http://192.168.101.127:3000/api/admin/announcements'),
+                      Uri.parse('https://plateq-backend.onrender.com/api/admin/announcements'),
                       headers: {
                         'Content-Type': 'application/json',
                         'Authorization': 'Bearer $token'
@@ -405,7 +405,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                   final token = prefs.getString('jwt_token') ?? '';
                   try {
                     final response = await http.post(
-                      Uri.parse('http://192.168.101.127:3000/api/app/version'),
+                      Uri.parse('https://plateq-backend.onrender.com/api/app/version'),
                       headers: {
                         'Content-Type': 'application/json',
                         'Authorization': 'Bearer $token'

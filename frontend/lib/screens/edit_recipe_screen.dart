@@ -253,7 +253,7 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
                             widget.recipe.image!.isNotEmpty)
                       ? DecorationImage(
                           image: NetworkImage(
-                            "http://192.168.101.127:3000/uploads/${widget.recipe.image}",
+                            "https://plateq-backend.onrender.com/uploads/${widget.recipe.image}",
                           ),
                           fit: BoxFit.cover,
                         )

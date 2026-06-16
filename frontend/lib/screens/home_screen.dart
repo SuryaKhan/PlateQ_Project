@@ -66,7 +66,7 @@ class _HomeScreenState extends State<HomeScreen> {
       if (token.isEmpty) return;
 
       final response = await http.get(
-        Uri.parse('http://192.168.101.127:3000/api/social/notifications'),
+        Uri.parse('https://plateq-backend.onrender.com/api/social/notifications'),
         headers: {'Authorization': 'Bearer $token'}
       );
 
@@ -350,7 +350,7 @@ class RecipeGridCard extends StatelessWidget {
                         ? Hero(
                             tag: 'recipe-image-${recipe.id}',
                             child: Image.network(
-                              'http://192.168.101.127:3000/uploads/${recipe.image}',
+                              'https://plateq-backend.onrender.com/uploads/${recipe.image}',
                               fit: BoxFit.cover,
                               errorBuilder: (context, error, stackTrace) => const Icon(Icons.broken_image, color: Colors.grey, size: 40),
                             ),
