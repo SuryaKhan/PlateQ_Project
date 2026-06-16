@@ -477,7 +477,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ),
                   ],
                 ),
-              );
+              ),
+            );
             },
             childCount: comments.length,
           ),
