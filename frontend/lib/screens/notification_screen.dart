@@ -80,24 +80,24 @@ class _NotificationScreenState extends State<NotificationScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FB),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: const Color(0xFFF8F9FB),
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         elevation: 0,
         leading: Padding(
           padding: const EdgeInsets.only(left: 16.0),
           child: CircleAvatar(
-            backgroundColor: const Color(0xFFE2E8F0),
+            backgroundColor: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF2D3748) : const Color(0xFFE2E8F0),
             child: IconButton(
-              icon: const Icon(Icons.arrow_back, color: Colors.black),
+              icon: Icon(Icons.arrow_back, color: Theme.of(context).textTheme.bodyLarge?.color),
               onPressed: () => Navigator.pop(context),
             ),
           ),
         ),
-        title: const Text(
+        title: Text(
           "Notifikasi",
           style: TextStyle(
-            color: Color(0xFF1E293B),
+            color: Theme.of(context).textTheme.bodyLarge?.color,
             fontWeight: FontWeight.w900,
             fontSize: 20,
             letterSpacing: -0.5,
@@ -212,11 +212,11 @@ class _NotificationScreenState extends State<NotificationScreen> {
         margin: const EdgeInsets.only(bottom: 16),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: notif["isRead"] ? Colors.white : const Color(0xFFEFF6FF),
+        color: notif["isRead"] ? Theme.of(context).colorScheme.surface : (Theme.of(context).brightness == Brightness.dark ? const Color(0xFF1E293B) : const Color(0xFFEFF6FF)),
         borderRadius: BorderRadius.circular(15),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withAlpha(5),
+            color: Colors.black.withAlpha(Theme.of(context).brightness == Brightness.dark ? 20 : 5),
             blurRadius: 10,
             offset: const Offset(0, 5),
           ),
@@ -239,8 +239,8 @@ class _NotificationScreenState extends State<NotificationScreen> {
                 right: -4,
                 child: Container(
                   padding: const EdgeInsets.all(4),
-                  decoration: const BoxDecoration(
-                    color: Colors.white,
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.surface,
                     shape: BoxShape.circle,
                   ),
                   child: Icon(iconData, size: 12, color: iconColor),
@@ -255,7 +255,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
               children: [
                 RichText(
                   text: TextSpan(
-                    style: const TextStyle(color: Color(0xFF1E293B), fontSize: 14, height: 1.4),
+                    style: TextStyle(color: Theme.of(context).textTheme.bodyLarge?.color, fontSize: 14, height: 1.4),
                     children: [
                       TextSpan(text: notif["message"]),
                     ],
