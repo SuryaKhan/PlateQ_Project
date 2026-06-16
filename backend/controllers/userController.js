@@ -1,4 +1,5 @@
 const prisma = require('../db');
+const bcrypt = require('bcryptjs');
 
 // 1. UPDATE PROFILE
 exports.updateProfile = async (req, res) => {
@@ -119,5 +120,43 @@ exports.uploadProfileImage = async (req, res) => {
   } catch (error) {
     console.error("❌ ERROR UPLOAD PROFILE IMAGE:", error);
     res.status(500).json({ error: "Gagal mengupload foto." });
+  }
+};
+
+// 4. CHANGE PASSWORD
+exports.changePassword = async (req, res) => {
+  try {
+    const userId = req.user.userId;
+    const { oldPassword, newPassword } = req.body;
+
+    if (!oldPassword || !newPassword) {
+      return res.status(400).json({ error: "Password lama dan baru wajib diisi." });
+    }
+
+    if (newPassword.length < 8) {
+      return res.status(400).json({ error: "Password baru minimal 8 karakter." });
+    }
+
+    const user = await prisma.user.findUnique({ where: { id: userId } });
+    if (!user) {
+      return res.status(404).json({ error: "User tidak ditemukan." });
+    }
+
+    const isMatch = await bcrypt.compare(oldPassword, user.password);
+    if (!isMatch) {
+      return res.status(401).json({ error: "Password lama salah." });
+    }
+
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+    await prisma.user.update({
+      where: { id: userId },
+      data: { password: hashedPassword }
+    });
+
+    res.json({ message: "Password berhasil diubah!" });
+  } catch (error) {
+    console.error("❌ ERROR CHANGE PASSWORD:", error);
+    res.status(500).json({ error: "Terjadi kesalahan saat mengubah password." });
   }
 };

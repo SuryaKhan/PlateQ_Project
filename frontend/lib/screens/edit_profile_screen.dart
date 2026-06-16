@@ -123,6 +123,120 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     }
   }
 
+  void _showChangePasswordDialog() {
+    final oldPasswordController = TextEditingController();
+    final newPasswordController = TextEditingController();
+    bool isLoading = false;
+    String strengthText = '';
+    Color strengthColor = Colors.transparent;
+
+    void checkStrength(String value, StateSetter setModalState) {
+      if (value.isEmpty) {
+        setModalState(() {
+          strengthText = '';
+          strengthColor = Colors.transparent;
+        });
+        return;
+      }
+      if (value.length < 8) {
+        setModalState(() {
+          strengthText = 'Terlalu Pendek (Min. 8 karakter)';
+          strengthColor = Colors.red;
+        });
+        return;
+      }
+      bool hasLetters = RegExp(r'[a-zA-Z]').hasMatch(value);
+      bool hasNumbers = RegExp(r'[0-9]').hasMatch(value);
+      bool hasSpecials = RegExp(r'[!@#$%^&*(),.?":{}|<>]').hasMatch(value);
+
+      if (hasLetters && hasNumbers && hasSpecials) {
+        setModalState(() {
+          strengthText = 'Rumit 🔥';
+          strengthColor = Colors.green;
+        });
+      } else if ((hasLetters && hasNumbers) || (hasLetters && hasSpecials) || (hasNumbers && hasSpecials)) {
+        setModalState(() {
+          strengthText = 'Oke 👍';
+          strengthColor = Colors.orange;
+        });
+      } else {
+        setModalState(() {
+          strengthText = 'Low ⚠️';
+          strengthColor = Colors.redAccent;
+        });
+      }
+    }
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            return AlertDialog(
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+              title: const Text("Ubah Password", style: TextStyle(fontWeight: FontWeight.bold)),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  TextField(
+                    controller: oldPasswordController,
+                    obscureText: true,
+                    decoration: const InputDecoration(labelText: "Password Lama", border: OutlineInputBorder()),
+                  ),
+                  const SizedBox(height: 15),
+                  TextField(
+                    controller: newPasswordController,
+                    obscureText: true,
+                    onChanged: (val) => checkStrength(val, setModalState),
+                    decoration: const InputDecoration(labelText: "Password Baru", border: OutlineInputBorder()),
+                  ),
+                  if (strengthText.isNotEmpty)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 8.0),
+                      child: Text(strengthText, style: TextStyle(color: strengthColor, fontWeight: FontWeight.bold, fontSize: 12)),
+                    )
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text("Batal", style: TextStyle(color: Colors.grey)),
+                ),
+                isLoading
+                    ? const Padding(padding: EdgeInsets.all(8.0), child: SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2)))
+                    : ElevatedButton(
+                        style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF1E293B)),
+                        onPressed: () async {
+                          if (newPasswordController.text.length < 8) {
+                            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Password baru minimal 8 karakter!"), backgroundColor: Colors.red));
+                            return;
+                          }
+                          setModalState(() => isLoading = true);
+                          bool success = await AuthService.changePassword(
+                            _emailController.text,
+                            oldPasswordController.text,
+                            newPasswordController.text,
+                          );
+                          setModalState(() => isLoading = false);
+                          if (!mounted) return;
+                          Navigator.pop(context); // Tutup dialog
+                          if (success) {
+                            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Password berhasil diubah!"), backgroundColor: Colors.green));
+                          } else {
+                            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Gagal mengubah password. Cek password lama!"), backgroundColor: Colors.red));
+                          }
+                        },
+                        child: const Text("Simpan", style: TextStyle(color: Colors.white)),
+                      )
+              ],
+            );
+          }
+        );
+      }
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -206,6 +320,21 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                       _buildPremiumTextField("Bio", _bioController, Icons.info_outline, maxLines: 3),
                       const SizedBox(height: 20),
                       _buildPremiumTextField("Email Address", _emailController, Icons.email_outlined),
+                      const SizedBox(height: 25),
+                      // Tombol Ubah Password
+                      SizedBox(
+                        width: double.infinity,
+                        child: OutlinedButton.icon(
+                          onPressed: _showChangePasswordDialog,
+                          icon: const Icon(Icons.lock_reset, color: Color(0xFF1E293B)),
+                          label: const Text("Ubah Password Saat Ini", style: TextStyle(color: Color(0xFF1E293B), fontWeight: FontWeight.bold)),
+                          style: OutlinedButton.styleFrom(
+                            side: const BorderSide(color: Color(0xFF1E293B)),
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+                          ),
+                        ),
+                      ),
                     ],
                   ),
                 ),

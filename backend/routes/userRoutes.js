@@ -23,4 +23,7 @@ router.put('/upload-profile-image', authMiddleware, upload.single('profileImage'
 // Get profil detail
 router.get('/profile', authMiddleware, userController.getProfile);
 
+// Ubah Password
+router.put('/change-password', authMiddleware, userController.changePassword);
+
 module.exports = router;
