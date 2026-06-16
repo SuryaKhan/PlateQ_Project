@@ -18,6 +18,7 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
   final TextEditingController _commentController = TextEditingController();
   final FocusNode _commentFocusNode = FocusNode();
   String? _currentUsername;
+  String? _currentUserRole;
   bool _isFavorited = false;
   
   int? _replyingToCommentId;
@@ -45,6 +46,7 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
     final prefs = await SharedPreferences.getInstance();
     setState(() {
       _currentUsername = prefs.getString('username');
+      _currentUserRole = prefs.getString('role');
     });
   }
 
@@ -81,6 +83,31 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
           _comments.removeAt(0);
         });
       }
+  }
+
+  Future<void> _deleteComment(int commentId) async {
+    // Tampilkan konfirmasi
+    bool? confirm = await showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text("Hapus Komentar?"),
+        content: const Text("Komentar ini akan dihapus secara permanen."),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text("Batal")),
+          TextButton(onPressed: () => Navigator.pop(context, true), child: const Text("Hapus", style: TextStyle(color: Colors.red))),
+        ],
+      ),
+    );
+
+    if (confirm == true) {
+      bool success = await RecipeService.deleteComment(widget.recipe.id, commentId);
+      if (success) {
+        _fetchComments();
+      } else {
+        if (!context.mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Gagal menghapus komentar.")));
+      }
+    }
   }
 
   @override
@@ -649,25 +676,42 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
               ),
               const SizedBox(height: 4),
               Text(comment, style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withAlpha(200), fontSize: isReply ? 13 : 14, height: 1.4)),
-              const SizedBox(height: 4),
-              if (!isReply) // Hanya bisa membalas komentar utama (1 level)
-                GestureDetector(
-                  onTap: () {
-                    setState(() {
-                      _replyingToCommentId = id;
-                      _replyingToUsername = name;
-                      _commentController.clear();
-                    });
-                    _commentFocusNode.requestFocus();
-                  },
-                  child: Row(
-                    children: [
-                      const Icon(Icons.reply, size: 14, color: Colors.grey),
-                      const SizedBox(width: 4),
-                      const Text("Balas", style: TextStyle(color: Colors.grey, fontSize: 12, fontWeight: FontWeight.bold)),
-                    ],
-                  ),
-                )
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  if (!isReply) // Hanya bisa membalas komentar utama (1 level)
+                    GestureDetector(
+                      onTap: () {
+                        setState(() {
+                          _replyingToCommentId = id;
+                          _replyingToUsername = name;
+                          _commentController.clear();
+                        });
+                        _commentFocusNode.requestFocus();
+                      },
+                      child: Row(
+                        children: [
+                          const Icon(Icons.reply, size: 14, color: Colors.grey),
+                          const SizedBox(width: 4),
+                          const Text("Balas", style: TextStyle(color: Colors.grey, fontSize: 12, fontWeight: FontWeight.bold)),
+                        ],
+                      ),
+                    ),
+                  if (!isReply && (_currentUserRole == 'ADMIN' || _currentUserRole == 'SUPERADMIN' || _currentUsername == name))
+                    const SizedBox(width: 16),
+                  if (_currentUserRole == 'ADMIN' || _currentUserRole == 'SUPERADMIN' || _currentUsername == name)
+                    GestureDetector(
+                      onTap: () => _deleteComment(id),
+                      child: Row(
+                        children: [
+                          const Icon(Icons.delete_outline, size: 14, color: Colors.redAccent),
+                          const SizedBox(width: 4),
+                          const Text("Hapus", style: TextStyle(color: Colors.redAccent, fontSize: 12, fontWeight: FontWeight.bold)),
+                        ],
+                      ),
+                    )
+                ],
+              )
             ],
           ),
         )

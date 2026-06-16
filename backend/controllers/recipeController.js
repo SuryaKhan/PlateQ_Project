@@ -191,6 +191,39 @@ const toggleBookmark = async (req, res) => {
     res.status(500).json({ error: "Gagal memproses bookmark." });
   }
 };
+
+// 7. DELETE COMMENT
+const deleteComment = async (req, res) => {
+  try {
+    const { id: recipeId, commentId } = req.params;
+    const userId = req.user.userId;
+
+    const user = await prisma.user.findUnique({ where: { id: userId } });
+    if (!user) return res.status(404).json({ error: "User tidak ditemukan!" });
+
+    const comment = await prisma.comment.findUnique({ where: { id: parseInt(commentId) } });
+    if (!comment) return res.status(404).json({ error: "Komentar tidak ditemukan!" });
+
+    if (user.role !== 'ADMIN' && user.role !== 'SUPERADMIN' && comment.userId !== userId) {
+      return res.status(403).json({ error: "Anda tidak berhak menghapus komentar ini!" });
+    }
+
+    // Hapus balasan dari komentar ini terlebih dahulu (opsional, tergantung CASCADE Prisma)
+    await prisma.comment.deleteMany({
+      where: { parentId: parseInt(commentId) }
+    });
+    
+    await prisma.comment.delete({
+      where: { id: parseInt(commentId) }
+    });
+
+    res.json({ message: "Komentar berhasil dihapus!" });
+  } catch (error) {
+    console.error("❌ ERROR DELETE COMMENT:", error);
+    res.status(500).json({ error: "Gagal menghapus komentar." });
+  }
+};
+
 // --- 6. Fitur Komentar ---
 const addComment = async (req, res) => {
   try {
@@ -236,4 +269,4 @@ const getComments = async (req, res) => {
   }
 };
 
-module.exports = { createRecipe, getAllRecipes, updateRecipe, deleteRecipe, toggleBookmark, addComment, getComments };
+module.exports = { createRecipe, getAllRecipes, updateRecipe, deleteRecipe, toggleBookmark, addComment, getComments, deleteComment };

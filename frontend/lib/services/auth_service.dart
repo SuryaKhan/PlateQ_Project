@@ -56,10 +56,14 @@ class AuthService {
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         String token = data['token'];
+        String? role = data['user']['role']; // Dapatkan role dari response jika ada
 
         // Simpan token ke brankas lokal (SharedPreferences)
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString('jwt_token', token);
+        if (role != null) {
+          await prefs.setString('role', role);
+        }
 
         return true;
       } else {

@@ -167,6 +167,26 @@ class RecipeService {
     }
   }
 
+  // 7.5 Hapus Komentar
+  static Future<bool> deleteComment(int recipeId, int commentId) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('jwt_token');
+
+      final response = await http.delete(
+        Uri.parse('$baseUrl/$recipeId/comments/$commentId'),
+        headers: {
+          'Authorization': 'Bearer $token',
+        },
+      );
+
+      return response.statusCode == 200;
+    } catch (e) {
+      debugPrint("Error Delete Comment: $e");
+      return false;
+    }
+  }
+
   // 8. Toggle Bookmark
   static Future<bool> toggleBookmark(int recipeId) async {
     try {
