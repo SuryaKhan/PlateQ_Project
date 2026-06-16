@@ -392,8 +392,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
           delegate: SliverChildBuilderDelegate(
             (context, index) {
               final comment = comments[index];
-              final recipeName = comment['recipe']?['title'] ?? 'Resep Terhapus';
-              final content = comment['content'] ?? '';
+              final recipeRaw = comment['recipe'];
+              final recipeName = recipeRaw?['title'] ?? 'Resep Terhapus';
+              final content = comment['text'] ?? '';
               
               // Hitung waktu sederhana
               String timeAgo = "Baru saja";
@@ -409,19 +410,31 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 }
               } catch (_) {}
 
-              return Container(
-                margin: const EdgeInsets.only(bottom: 16),
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.surface,
-                  borderRadius: BorderRadius.circular(15),
-                  boxShadow: [
-                    BoxShadow(color: Colors.black.withAlpha(5), blurRadius: 10, offset: const Offset(0, 5)),
-                  ],
-                ),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
+              return InkWell(
+                onTap: () {
+                  if (recipeRaw != null) {
+                    final recipeObj = Recipe.fromJson(recipeRaw);
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => RecipeDetailScreen(recipe: recipeObj),
+                      ),
+                    );
+                  }
+                },
+                child: Container(
+                  margin: const EdgeInsets.only(bottom: 16),
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.surface,
+                    borderRadius: BorderRadius.circular(15),
+                    boxShadow: [
+                      BoxShadow(color: Colors.black.withAlpha(5), blurRadius: 10, offset: const Offset(0, 5)),
+                    ],
+                  ),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
                     // Avatar dari user yang sedang login
                     Container(
                       width: 40,
@@ -463,6 +476,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       ),
                     ),
                   ],
+                    ],
+                  ),
                 ),
               );
             },

@@ -423,45 +423,18 @@ class _AddRecipeScreenState extends State<AddRecipeScreen> {
                                 controller,
                                 maxLines: 3,
                               ),
-                              const SizedBox(height: 12),
-                              // Placeholder for step image
-                              Row(
-                                children: [
-                                  Container(
-                                    width: 80,
-                                    height: 80,
-                                    decoration: BoxDecoration(
-                                      color: Theme.of(
-                                        context,
-                                      ).colorScheme.surfaceContainerHighest,
-                                      borderRadius: BorderRadius.circular(15),
-                                      border: Border.all(
-                                        color:
-                                            Theme.of(context).brightness ==
-                                                Brightness.dark
-                                            ? Colors.grey.shade700
-                                            : Colors.grey.shade300,
-                                        style: BorderStyle.solid,
-                                      ),
+                              const SizedBox(height: 8),
+                              if (_steps.length > 1)
+                                Align(
+                                  alignment: Alignment.centerRight,
+                                  child: IconButton(
+                                    icon: const Icon(
+                                      Icons.delete_outline,
+                                      color: Colors.red,
                                     ),
-                                    child: const Center(
-                                      child: Icon(
-                                        Icons.image,
-                                        color: Colors.grey,
-                                      ),
-                                    ),
+                                    onPressed: () => _removeStepRow(index),
                                   ),
-                                  const Spacer(),
-                                  if (_steps.length > 1)
-                                    IconButton(
-                                      icon: const Icon(
-                                        Icons.delete_outline,
-                                        color: Colors.red,
-                                      ),
-                                      onPressed: () => _removeStepRow(index),
-                                    ),
-                                ],
-                              ),
+                                ),
                             ],
                           ),
                         ),
