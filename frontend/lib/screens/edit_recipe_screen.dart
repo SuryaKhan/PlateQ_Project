@@ -21,8 +21,8 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
   late TextEditingController _prepTimeController;
   late TextEditingController _servingsController;
 
-  String _selectedCategory = "Nasi";
-  final List<String> _categories = ["Nasi", "Mie", "Minuman", "Dessert"];
+  String _selectedCategory = "Makanan";
+  final List<String> _categories = ["Makanan", "Minuman", "Dessert"];
 
   final List<Map<String, TextEditingController>> _ingredients = [];
   final List<TextEditingController> _steps = [];
@@ -150,7 +150,6 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
 
     // Kategori mapping simpel
     int catId = 1;
-    if (_selectedCategory == "Mie") catId = 2;
     if (_selectedCategory == "Minuman") catId = 3;
     if (_selectedCategory == "Dessert") catId = 4;
 

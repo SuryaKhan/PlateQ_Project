@@ -129,9 +129,10 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _fetchRecipes() {
+    final List<int?> categoryIds = [null, 1, 3, 4];
     setState(() {
       _recipesFuture = RecipeService.fetchRecipes(
-        categoryId: _selectedCategoryIndex == 0 ? null : _selectedCategoryIndex,
+        categoryId: categoryIds[_selectedCategoryIndex],
       );
     });
   }

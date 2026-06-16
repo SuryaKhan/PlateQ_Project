@@ -100,12 +100,15 @@ class _AddRecipeScreenState extends State<AddRecipeScreen> {
 
     String contentJson = jsonEncode(contentData);
 
+    int categoryIdToSend = 1;
+    if (_selectedCategory == "Minuman") categoryIdToSend = 3;
+    if (_selectedCategory == "Dessert") categoryIdToSend = 4;
+
     // API Post (Nanti backend akan menerima file image via multipart)
     bool success = await RecipeService.createRecipe(
       title: _titleController.text,
       content: contentJson,
-      categoryId:
-          1, // Harusnya sesuai _selectedCategory, tapi backend butuh int. Asumsi Nasi = 1
+      categoryId: categoryIdToSend,
       difficulty: "Easy", // Default
       cookingTime: _prepTimeController.text.isNotEmpty
           ? _prepTimeController.text
