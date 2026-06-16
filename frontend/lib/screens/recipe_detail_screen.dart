@@ -64,17 +64,16 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
 
     // Send to backend
     bool success = await RecipeService.addComment(widget.recipe.id, text);
-    if (success) {
-      _fetchComments(); // Refresh with real data
-    } else {
-      if (mounted) {
+      if (success) {
+        _fetchComments(); // Refresh with real data
+      } else {
+        if (!context.mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Gagal mengirim komentar.")));
         // Rollback optimistic update
         setState(() {
           _comments.removeAt(0);
         });
       }
-    }
   }
 
   @override
@@ -458,15 +457,13 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                       ),
                       onPressed: () async {
                         await RecipeService.toggleBookmark(widget.recipe.id);
-                        if (!mounted) return;
+                        if (!context.mounted) return;
                         setState(() {
                           _isFavorited = !_isFavorited;
                         });
-                        if (mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text(_isFavorited ? "Ditambahkan ke Favorit!" : "Dihapus dari Favorit"))
-                          );
-                        }
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text(_isFavorited ? "Ditambahkan ke Favorit!" : "Dihapus dari Favorit"))
+                        );
                       },
                     ),
                   ),
