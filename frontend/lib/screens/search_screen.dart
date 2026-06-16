@@ -5,6 +5,8 @@ import 'dart:convert';
 import 'dart:async';
 import '../models/recipe_model.dart';
 import 'home_screen.dart'; // Untuk menggunakan RecipeGridCard
+import 'recipe_detail_screen.dart';
+import 'public_profile_screen.dart';
 import '../services/social_service.dart';
 
 class SearchScreen extends StatefulWidget {
@@ -347,7 +349,17 @@ class _SearchScreenState extends State<SearchScreen> {
                   ),
                   delegate: SliverChildBuilderDelegate(
                     (context, index) {
-                      return RecipeGridCard(recipe: _searchResults[index]);
+                      return GestureDetector(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => RecipeDetailScreen(recipe: _searchResults[index]),
+                            ),
+                          );
+                        },
+                        child: RecipeGridCard(recipe: _searchResults[index]),
+                      );
                     },
                     childCount: _searchResults.length,
                   ),
@@ -359,6 +371,14 @@ class _SearchScreenState extends State<SearchScreen> {
                   (context, index) {
                     final user = _userResults[index];
                     return ListTile(
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => PublicProfileScreen(userId: user['id']),
+                          ),
+                        );
+                      },
                       contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
                       leading: CircleAvatar(
                         radius: 25,

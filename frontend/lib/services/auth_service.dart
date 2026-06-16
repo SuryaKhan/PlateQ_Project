@@ -138,7 +138,35 @@ class AuthService {
       }
       return null;
     } catch (e) {
-      debugPrint("❌ Error Pas Get Profil: $e");
+      debugPrint("❌ Error Pas Ambil Profil: $e");
+      return null;
+    }
+  }
+
+  // ==========================================
+  // 3.6 FUNGSI GET PROFIL PUBLIK PENGGUNA LAIN
+  // ==========================================
+  static Future<Map<String, dynamic>?> getPublicProfile(int userId) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('jwt_token');
+
+      if (token == null) return null;
+
+      final response = await http.get(
+        Uri.parse('$userUrl/public/$userId'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      }
+      return null;
+    } catch (e) {
+      debugPrint("❌ Error Ambil Profil Publik: $e");
       return null;
     }
   }
