@@ -192,8 +192,7 @@ class RecipeService {
     }
   }
 
-  // 8. Toggle Bookmark
-  static Future<bool> toggleBookmark(int recipeId) async {
+  static Future<bool?> toggleBookmark(int recipeId) async {
     try {
       final prefs = await SharedPreferences.getInstance();
       final token = prefs.getString('jwt_token');
@@ -209,10 +208,10 @@ class RecipeService {
         final data = jsonDecode(response.body);
         return data['bookmarked'] == true; // Backend returns this
       }
-      return false;
+      return null;
     } catch (e) {
       debugPrint("Error Toggle Bookmark: $e");
-      return false;
+      return null;
     }
   }
 }

@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/recipe_model.dart';
 import '../services/recipe_service.dart';
+import '../services/auth_service.dart';
 import 'edit_recipe_screen.dart';
 
 class RecipeDetailScreen extends StatefulWidget {
@@ -31,6 +32,19 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
     super.initState();
     _loadCurrentUser();
     _fetchComments();
+    _fetchBookmarkStatus();
+  }
+
+  Future<void> _fetchBookmarkStatus() async {
+    final profile = await AuthService.getProfile();
+    if (profile != null && profile['favoriteRecipes'] != null) {
+      final List favorites = profile['favoriteRecipes'];
+      if (mounted) {
+        setState(() {
+          _isFavorited = favorites.any((r) => r['id'] == widget.recipe.id);
+        });
+      }
+    }
   }
 
   Future<void> _fetchComments() async {
@@ -531,14 +545,20 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                         color: _isFavorited ? Colors.redAccent : Colors.white,
                       ),
                       onPressed: () async {
-                        await RecipeService.toggleBookmark(widget.recipe.id);
+                        bool? newStatus = await RecipeService.toggleBookmark(widget.recipe.id);
                         if (!context.mounted) return;
-                        setState(() {
-                          _isFavorited = !_isFavorited;
-                        });
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text(_isFavorited ? "Ditambahkan ke Favorit!" : "Dihapus dari Favorit"))
-                        );
+                        if (newStatus != null) {
+                          setState(() {
+                            _isFavorited = newStatus;
+                          });
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text(_isFavorited ? "Ditambahkan ke Favorit!" : "Dihapus dari Favorit"))
+                          );
+                        } else {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text("Gagal memproses favorit."))
+                          );
+                        }
                       },
                     ),
                   ),
