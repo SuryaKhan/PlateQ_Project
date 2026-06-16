@@ -217,7 +217,61 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                                   height: 1.5,
                                 ),
                               ),
-                            ],
+                              const SizedBox(height: 16),
+                                // Tombol Sosial (Follow & DM)
+                                Row(
+                                  children: [
+                                    Expanded(
+                                      child: ElevatedButton.icon(
+                                        onPressed: () {
+                                          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                                            content: Text("Berhasil mengikuti pengguna! Notifikasi telah dikirim."),
+                                            backgroundColor: Colors.green,
+                                          ));
+                                        },
+                                        icon: const Icon(Icons.person_add, size: 16),
+                                        label: const Text("Ikuti", style: TextStyle(fontWeight: FontWeight.bold)),
+                                        style: ElevatedButton.styleFrom(
+                                          backgroundColor: const Color(0xFF1E293B),
+                                          foregroundColor: Colors.white,
+                                          elevation: 0,
+                                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                                          padding: const EdgeInsets.symmetric(vertical: 10),
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Expanded(
+                                      child: OutlinedButton.icon(
+                                        onPressed: () {
+                                          showDialog(
+                                            context: context, 
+                                            builder: (_) => AlertDialog(
+                                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                                              title: const Text("Fitur Coming Soon 🚀", style: TextStyle(fontWeight: FontWeight.bold)),
+                                              content: const Text("Fitur Kirim Pesan (DM) sedang dalam pengembangan.\n\nSaat ini diskusi hanya bisa dilakukan di kolom komentar resep ya!"),
+                                              actions: [
+                                                TextButton(
+                                                  onPressed: () => Navigator.pop(context), 
+                                                  child: const Text("Siap!", style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF1E293B)))
+                                                )
+                                              ],
+                                            )
+                                          );
+                                        },
+                                        icon: const Icon(Icons.mail_outline, size: 16),
+                                        label: const Text("Pesan", style: TextStyle(fontWeight: FontWeight.bold)),
+                                        style: OutlinedButton.styleFrom(
+                                          foregroundColor: Theme.of(context).brightness == Brightness.dark ? Colors.white : const Color(0xFF1E293B),
+                                          side: BorderSide(color: Theme.of(context).brightness == Brightness.dark ? Colors.white : const Color(0xFF1E293B)),
+                                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                                          padding: const EdgeInsets.symmetric(vertical: 10),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
                           ),
                         ),
                         const SizedBox(height: 24),
