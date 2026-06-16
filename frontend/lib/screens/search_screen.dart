@@ -79,12 +79,19 @@ class _SearchScreenState extends State<SearchScreen> {
         // Search Recipes
         final res = await http.get(Uri.parse('http://192.168.101.127:3000/api/recipes?search=$query&page=$_page&limit=$_limit'));
         if (res.statusCode == 200) {
-          final data = jsonDecode(res.body);
-          final List list = data['data'] ?? [];
-          setState(() {
-            _searchResults = list.map((e) => Recipe.fromJson(e)).toList();
-            _hasMore = data['pagination']['hasMore'] ?? false;
-          });
+          final decoded = jsonDecode(res.body);
+          if (decoded is List) {
+            setState(() {
+              _searchResults = decoded.map((e) => Recipe.fromJson(e)).toList();
+              _hasMore = false; // Disable pagination if backend doesn't support it yet
+            });
+          } else {
+            final List list = decoded['data'] ?? [];
+            setState(() {
+              _searchResults = list.map((e) => Recipe.fromJson(e)).toList();
+              _hasMore = decoded['pagination']?['hasMore'] ?? false;
+            });
+          }
         }
       } else {
         if (_token == null) {
@@ -119,12 +126,17 @@ class _SearchScreenState extends State<SearchScreen> {
     try {
       final res = await http.get(Uri.parse('http://192.168.101.127:3000/api/recipes?search=$_searchQuery&page=$_page&limit=$_limit'));
       if (res.statusCode == 200) {
-        final data = jsonDecode(res.body);
-        final List list = data['data'] ?? [];
-        if (mounted) {
+        final decoded = jsonDecode(res.body);
+        if (decoded is List) {
+          setState(() {
+            _searchResults.addAll(decoded.map((e) => Recipe.fromJson(e)).toList());
+            _hasMore = false;
+          });
+        } else {
+          final List list = decoded['data'] ?? [];
           setState(() {
             _searchResults.addAll(list.map((e) => Recipe.fromJson(e)).toList());
-            _hasMore = data['pagination']['hasMore'] ?? false;
+            _hasMore = decoded['pagination']?['hasMore'] ?? false;
           });
         }
       }

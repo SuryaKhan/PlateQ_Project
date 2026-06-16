@@ -130,7 +130,9 @@ class _HomeScreenState extends State<HomeScreen> {
 
   void _fetchRecipes() {
     setState(() {
-      _recipesFuture = RecipeService.fetchRecipes();
+      _recipesFuture = RecipeService.fetchRecipes(
+        categoryId: _selectedCategoryIndex == 0 ? null : _selectedCategoryIndex,
+      );
     });
   }
 
@@ -222,7 +224,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         setState(() {
                           _selectedCategoryIndex = index;
                         });
-                        // Nanti tambahkan filter ke fetchRecipes berdasarkan kategori
+                        _fetchRecipes();
                       },
                       child: Container(
                         margin: const EdgeInsets.only(right: 12),

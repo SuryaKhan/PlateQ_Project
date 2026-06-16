@@ -8,12 +8,17 @@ class RecipeService {
   static const String baseUrl = 'http://192.168.101.127:3000/api/recipes';
 
   // Fungsi buat ngambil semua data resep (GET)
-  static Future<List<Recipe>> fetchRecipes({int? authorId}) async {
+  static Future<List<Recipe>> fetchRecipes({int? authorId, int? categoryId}) async {
     try {
       String url = baseUrl;
-      if (authorId != null) {
-        url += '?authorId=$authorId';
+      List<String> queryParams = [];
+      if (authorId != null) queryParams.add('authorId=$authorId');
+      if (categoryId != null) queryParams.add('categoryId=$categoryId');
+      
+      if (queryParams.isNotEmpty) {
+        url += '?${queryParams.join('&')}';
       }
+      
       // 1. Buka brankas HP buat ngambil Token JWT
       final prefs = await SharedPreferences.getInstance();
       final token = prefs.getString('jwt_token');
