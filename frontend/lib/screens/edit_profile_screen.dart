@@ -212,6 +212,11 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                             ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Password baru minimal 8 karakter!"), backgroundColor: Colors.red));
                             return;
                           }
+
+                          // Ambil state sebelum await
+                          final nav = Navigator.of(context);
+                          final scaffoldMsg = ScaffoldMessenger.of(context);
+
                           setModalState(() => isLoading = true);
                           bool success = await AuthService.changePassword(
                             _emailController.text,
@@ -219,12 +224,14 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                             newPasswordController.text,
                           );
                           setModalState(() => isLoading = false);
+                          
                           if (!mounted) return;
-                          Navigator.pop(context); // Tutup dialog
+                          
+                          nav.pop(); // Tutup dialog
                           if (success) {
-                            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Password berhasil diubah!"), backgroundColor: Colors.green));
+                            scaffoldMsg.showSnackBar(const SnackBar(content: Text("Password berhasil diubah!"), backgroundColor: Colors.green));
                           } else {
-                            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Gagal mengubah password. Cek password lama!"), backgroundColor: Colors.red));
+                            scaffoldMsg.showSnackBar(const SnackBar(content: Text("Gagal mengubah password. Cek password lama!"), backgroundColor: Colors.red));
                           }
                         },
                         child: const Text("Simpan", style: TextStyle(color: Colors.white)),
