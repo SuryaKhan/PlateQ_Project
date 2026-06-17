@@ -62,7 +62,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
         var request = http.MultipartRequest(
           'PUT',
-          Uri.parse('http://208.76.40.81:3000/api/users/upload-profile-image'),
+          Uri.parse('https://publisher-neurotic-affluent.ngrok-free.dev/api/users/upload-profile-image'),
         );
         request.headers['Authorization'] = 'Bearer $token';
 
@@ -286,7 +286,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                           radius: 50,
                           backgroundColor: Colors.grey.shade300,
                           backgroundImage: _profileImage != null 
-                              ? NetworkImage('http://208.76.40.81:3000/uploads/$_profileImage') 
+                              ? NetworkImage('https://publisher-neurotic-affluent.ngrok-free.dev/uploads/$_profileImage') 
                               : null,
                           child: _profileImage == null 
                               ? const Icon(Icons.person, size: 50, color: Colors.grey) 

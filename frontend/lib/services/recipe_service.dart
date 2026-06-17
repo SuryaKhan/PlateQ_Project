@@ -5,7 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../models/recipe_model.dart'; // Panggil cetakan yang tadi dibikin
 
 class RecipeService {
-  static const String baseUrl = 'http://208.76.40.81:3000/api/recipes';
+  static const String baseUrl = 'https://publisher-neurotic-affluent.ngrok-free.dev/api/recipes';
 
   // Fungsi buat ngambil semua data resep (GET)
   static Future<List<Recipe>> fetchRecipes({int? authorId, int? categoryId}) async {

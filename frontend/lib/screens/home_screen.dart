@@ -66,7 +66,7 @@ class _HomeScreenState extends State<HomeScreen> {
       if (token.isEmpty) return;
 
       final response = await http.get(
-        Uri.parse('http://208.76.40.81:3000/api/social/notifications'),
+        Uri.parse('https://publisher-neurotic-affluent.ngrok-free.dev/api/social/notifications'),
         headers: {'ngrok-skip-browser-warning': 'true', 'Authorization': 'Bearer $token'}
       );
 
@@ -350,7 +350,7 @@ class RecipeGridCard extends StatelessWidget {
                         ? Hero(
                             tag: 'recipe-image-${recipe.id}',
                             child: Image.network(
-                              'http://208.76.40.81:3000/uploads/${recipe.image}',
+                              'https://publisher-neurotic-affluent.ngrok-free.dev/uploads/${recipe.image}',
                               fit: BoxFit.cover,
                               errorBuilder: (context, error, stackTrace) => const Icon(Icons.broken_image, color: Colors.grey, size: 40),
                             ),
