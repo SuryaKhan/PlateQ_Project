@@ -285,7 +285,7 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                       ? Hero(
                           tag: 'recipe-image-${widget.recipe.id}',
                           child: Image.network(
-                            'http://192.168.101.133:3000/uploads/${widget.recipe.image}',
+                            'http://208.76.40.81:3000/uploads/${widget.recipe.image}',
                             fit: BoxFit.cover,
                             errorBuilder: (context, error, stackTrace) => const Icon(Icons.broken_image, color: Colors.grey, size: 60),
                           ),

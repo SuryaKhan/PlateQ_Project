@@ -26,7 +26,7 @@ class _ManageUsersScreenState extends State<ManageUsersScreen> {
       final token = prefs.getString('jwt_token') ?? '';
       
       final response = await http.get(
-        Uri.parse('http://192.168.101.133:3000/api/admin/users'),
+        Uri.parse('http://208.76.40.81:3000/api/admin/users'),
         headers: {'ngrok-skip-browser-warning': 'true', 'Authorization': 'Bearer $token'}
       );
 
@@ -71,7 +71,7 @@ class _ManageUsersScreenState extends State<ManageUsersScreen> {
       final token = prefs.getString('jwt_token') ?? '';
       
       final response = await http.delete(
-        Uri.parse('http://192.168.101.133:3000/api/admin/users/$id'),
+        Uri.parse('http://208.76.40.81:3000/api/admin/users/$id'),
         headers: {'ngrok-skip-browser-warning': 'true', 'Authorization': 'Bearer $token'}
       );
 
@@ -132,7 +132,7 @@ class _ManageUsersScreenState extends State<ManageUsersScreen> {
                             backgroundImage: user['profileImage'] != null 
                               ? NetworkImage(user['profileImage'].toString().startsWith('http') 
                                   ? user['profileImage'] 
-                                  : 'http://192.168.101.133:3000${user['profileImage']}') 
+                                  : 'http://208.76.40.81:3000${user['profileImage']}') 
                               : null,
                             child: user['profileImage'] == null ? Icon(Icons.person, color: Colors.grey[500], size: 30) : null,
                           ),

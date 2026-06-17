@@ -27,7 +27,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
       final token = prefs.getString('jwt_token') ?? '';
       
       final response = await http.get(
-        Uri.parse('http://192.168.101.133:3000/api/social/notifications'),
+        Uri.parse('http://208.76.40.81:3000/api/social/notifications'),
         headers: {'ngrok-skip-browser-warning': 'true', 'Authorization': 'Bearer $token'}
       );
 
@@ -56,7 +56,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
     if (token.isNotEmpty) {
       try {
         await http.put(
-          Uri.parse('http://192.168.101.133:3000/api/social/notifications/read'),
+          Uri.parse('http://208.76.40.81:3000/api/social/notifications/read'),
           headers: {'ngrok-skip-browser-warning': 'true', 'Authorization': 'Bearer $token'}
         );
       } catch (e) {
