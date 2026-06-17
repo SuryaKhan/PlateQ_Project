@@ -34,7 +34,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
       final token = prefs.getString('jwt_token') ?? '';
       
       final response = await http.get(
-        Uri.parse('http://192.168.101.127:3000/api/admin/stats'),
+        Uri.parse('http://192.168.101.133:3000/api/admin/stats'),
         headers: {'ngrok-skip-browser-warning': 'true', 
           'Authorization': 'Bearer $token'
         }
@@ -314,7 +314,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                   final token = prefs.getString('jwt_token') ?? '';
                   try {
                     final response = await http.post(
-                      Uri.parse('http://192.168.101.127:3000/api/admin/announcements'),
+                      Uri.parse('http://192.168.101.133:3000/api/admin/announcements'),
                       headers: {'ngrok-skip-browser-warning': 'true', 
                         'Content-Type': 'application/json',
                         'Authorization': 'Bearer $token'
@@ -405,7 +405,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                   final token = prefs.getString('jwt_token') ?? '';
                   try {
                     final response = await http.post(
-                      Uri.parse('http://192.168.101.127:3000/api/app/version'),
+                      Uri.parse('http://192.168.101.133:3000/api/app/version'),
                       headers: {'ngrok-skip-browser-warning': 'true', 
                         'Content-Type': 'application/json',
                         'Authorization': 'Bearer $token'
