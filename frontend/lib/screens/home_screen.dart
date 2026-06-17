@@ -67,7 +67,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
       final response = await http.get(
         Uri.parse('https://publisher-neurotic-affluent.ngrok-free.dev/api/social/notifications'),
-        headers: {'Authorization': 'Bearer $token'}
+        headers: {'ngrok-skip-browser-warning': 'true', 'Authorization': 'Bearer $token'}
       );
 
       if (response.statusCode == 200) {

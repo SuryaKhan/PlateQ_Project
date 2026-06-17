@@ -28,7 +28,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
       
       final response = await http.get(
         Uri.parse('https://publisher-neurotic-affluent.ngrok-free.dev/api/social/notifications'),
-        headers: {'Authorization': 'Bearer $token'}
+        headers: {'ngrok-skip-browser-warning': 'true', 'Authorization': 'Bearer $token'}
       );
 
       if (response.statusCode == 200) {
@@ -57,7 +57,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
       try {
         await http.put(
           Uri.parse('https://publisher-neurotic-affluent.ngrok-free.dev/api/social/notifications/read'),
-          headers: {'Authorization': 'Bearer $token'}
+          headers: {'ngrok-skip-browser-warning': 'true', 'Authorization': 'Bearer $token'}
         );
       } catch (e) {
         debugPrint("Error marking notifications as read: $e");

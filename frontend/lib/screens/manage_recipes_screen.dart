@@ -27,7 +27,7 @@ class _ManageRecipesScreenState extends State<ManageRecipesScreen> {
       
       final response = await http.get(
         Uri.parse('https://publisher-neurotic-affluent.ngrok-free.dev/api/admin/recipes'),
-        headers: {'Authorization': 'Bearer $token'}
+        headers: {'ngrok-skip-browser-warning': 'true', 'Authorization': 'Bearer $token'}
       );
 
       if (response.statusCode == 200) {
@@ -72,7 +72,7 @@ class _ManageRecipesScreenState extends State<ManageRecipesScreen> {
       
       final response = await http.delete(
         Uri.parse('https://publisher-neurotic-affluent.ngrok-free.dev/api/admin/recipes/$id'),
-        headers: {'Authorization': 'Bearer $token'}
+        headers: {'ngrok-skip-browser-warning': 'true', 'Authorization': 'Bearer $token'}
       );
 
       if (response.statusCode == 200) {

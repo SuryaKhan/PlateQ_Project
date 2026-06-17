@@ -35,7 +35,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
       
       final response = await http.get(
         Uri.parse('https://publisher-neurotic-affluent.ngrok-free.dev/api/admin/stats'),
-        headers: {
+        headers: {'ngrok-skip-browser-warning': 'true', 
           'Authorization': 'Bearer $token'
         }
       );
@@ -315,7 +315,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                   try {
                     final response = await http.post(
                       Uri.parse('https://publisher-neurotic-affluent.ngrok-free.dev/api/admin/announcements'),
-                      headers: {
+                      headers: {'ngrok-skip-browser-warning': 'true', 
                         'Content-Type': 'application/json',
                         'Authorization': 'Bearer $token'
                       },
@@ -406,7 +406,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                   try {
                     final response = await http.post(
                       Uri.parse('https://publisher-neurotic-affluent.ngrok-free.dev/api/app/version'),
-                      headers: {
+                      headers: {'ngrok-skip-browser-warning': 'true', 
                         'Content-Type': 'application/json',
                         'Authorization': 'Bearer $token'
                       },

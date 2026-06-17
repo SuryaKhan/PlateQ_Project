@@ -26,7 +26,7 @@ class RecipeService {
       // 2. Tembak API dan bawa Token-nya di bagian "Headers"
       final response = await http.get(
         Uri.parse(url),
-        headers: {
+        headers: {'ngrok-skip-browser-warning': 'true', 
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token', // Ini kunci masuknya!
         },
@@ -138,7 +138,7 @@ class RecipeService {
 
       final response = await http.delete(
         Uri.parse('$baseUrl/$id'),
-        headers: {
+        headers: {'ngrok-skip-browser-warning': 'true', 
           'Authorization': 'Bearer $token',
         },
       );
@@ -158,7 +158,7 @@ class RecipeService {
   // 6. Ambil Komentar
   static Future<List<Map<String, dynamic>>> fetchComments(int recipeId) async {
     try {
-      final response = await http.get(Uri.parse('$baseUrl/$recipeId/comments'));
+      final response = await http.get(Uri.parse('$baseUrl/$recipeId/comments'), headers: {'ngrok-skip-browser-warning': 'true'});
       if (response.statusCode == 200) {
         return List<Map<String, dynamic>>.from(jsonDecode(response.body));
       }
@@ -182,7 +182,7 @@ class RecipeService {
 
       final response = await http.post(
         Uri.parse('$baseUrl/$recipeId/comments'),
-        headers: {
+        headers: {'ngrok-skip-browser-warning': 'true', 
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token',
         },
@@ -204,7 +204,7 @@ class RecipeService {
 
       final response = await http.delete(
         Uri.parse('$baseUrl/$recipeId/comments/$commentId'),
-        headers: {
+        headers: {'ngrok-skip-browser-warning': 'true', 
           'Authorization': 'Bearer $token',
         },
       );
@@ -223,7 +223,7 @@ class RecipeService {
 
       final response = await http.post(
         Uri.parse('$baseUrl/$recipeId/bookmark'),
-        headers: {
+        headers: {'ngrok-skip-browser-warning': 'true', 
           'Authorization': 'Bearer $token',
         },
       );

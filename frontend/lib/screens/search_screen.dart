@@ -79,7 +79,7 @@ class _SearchScreenState extends State<SearchScreen> {
     try {
       if (_searchType == 0) {
         // Search Recipes
-        final res = await http.get(Uri.parse('https://publisher-neurotic-affluent.ngrok-free.dev/api/recipes?search=$query&page=$_page&limit=$_limit'));
+        final res = await http.get(Uri.parse('https://publisher-neurotic-affluent.ngrok-free.dev/api/recipes?search=$query&page=$_page&limit=$_limit'), headers: {'ngrok-skip-browser-warning': 'true'});
         if (res.statusCode == 200) {
           final decoded = jsonDecode(res.body);
           if (decoded is List) {
@@ -103,7 +103,7 @@ class _SearchScreenState extends State<SearchScreen> {
         
         final res = await http.get(
           Uri.parse('https://publisher-neurotic-affluent.ngrok-free.dev/api/users/search?q=$query'),
-          headers: _token != null ? {'Authorization': 'Bearer $_token'} : {},
+          headers: _token != null ? {'ngrok-skip-browser-warning': 'true', 'Authorization': 'Bearer $_token'} : {'ngrok-skip-browser-warning': 'true'},
         );
         if (res.statusCode == 200) {
           final List list = jsonDecode(res.body);
@@ -126,7 +126,7 @@ class _SearchScreenState extends State<SearchScreen> {
     setState(() => _isFetchingMore = true);
     _page++;
     try {
-      final res = await http.get(Uri.parse('https://publisher-neurotic-affluent.ngrok-free.dev/api/recipes?search=$_searchQuery&page=$_page&limit=$_limit'));
+      final res = await http.get(Uri.parse('https://publisher-neurotic-affluent.ngrok-free.dev/api/recipes?search=$_searchQuery&page=$_page&limit=$_limit'), headers: {'ngrok-skip-browser-warning': 'true'});
       if (res.statusCode == 200) {
         final decoded = jsonDecode(res.body);
         if (decoded is List) {

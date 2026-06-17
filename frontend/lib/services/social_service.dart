@@ -13,7 +13,7 @@ class SocialService {
 
     final response = await http.post(
       Uri.parse('$baseUrl/follow/$userId'),
-      headers: {
+      headers: {'ngrok-skip-browser-warning': 'true', 
         'Content-Type': 'application/json',
         'Authorization': 'Bearer $token',
       },

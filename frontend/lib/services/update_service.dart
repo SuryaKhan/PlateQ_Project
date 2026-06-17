@@ -9,7 +9,7 @@ class UpdateService {
 
   static Future<void> checkUpdate(BuildContext context) async {
     try {
-      final response = await http.get(Uri.parse('$baseUrl/version/latest'));
+      final response = await http.get(Uri.parse('$baseUrl/version/latest'), headers: {'ngrok-skip-browser-warning': 'true'});
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);

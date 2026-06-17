@@ -27,7 +27,7 @@ class _ManageUsersScreenState extends State<ManageUsersScreen> {
       
       final response = await http.get(
         Uri.parse('https://publisher-neurotic-affluent.ngrok-free.dev/api/admin/users'),
-        headers: {'Authorization': 'Bearer $token'}
+        headers: {'ngrok-skip-browser-warning': 'true', 'Authorization': 'Bearer $token'}
       );
 
       if (response.statusCode == 200) {
@@ -72,7 +72,7 @@ class _ManageUsersScreenState extends State<ManageUsersScreen> {
       
       final response = await http.delete(
         Uri.parse('https://publisher-neurotic-affluent.ngrok-free.dev/api/admin/users/$id'),
-        headers: {'Authorization': 'Bearer $token'}
+        headers: {'ngrok-skip-browser-warning': 'true', 'Authorization': 'Bearer $token'}
       );
 
       if (response.statusCode == 200) {

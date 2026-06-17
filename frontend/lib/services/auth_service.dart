@@ -20,7 +20,7 @@ class AuthService {
     try {
       final response = await http.post(
         Uri.parse('$authUrl/register'),
-        headers: {'Content-Type': 'application/json'},
+        headers: {'ngrok-skip-browser-warning': 'true', 'Content-Type': 'application/json'},
         body: jsonEncode({
           'email': email,
           'username': username,
@@ -46,7 +46,7 @@ class AuthService {
     try {
       final response = await http.post(
         Uri.parse('$authUrl/login'),
-        headers: {'Content-Type': 'application/json'},
+        headers: {'ngrok-skip-browser-warning': 'true', 'Content-Type': 'application/json'},
         body: jsonEncode({'username': username, 'password': password}),
       );
 
@@ -92,7 +92,7 @@ class AuthService {
 
       final response = await http.put(
         Uri.parse('$userUrl/update-profile'),
-        headers: {
+        headers: {'ngrok-skip-browser-warning': 'true', 
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token', // Mengirim tiket masuk ke Backend
         },
@@ -127,7 +127,7 @@ class AuthService {
 
       final response = await http.get(
         Uri.parse('$userUrl/profile'),
-        headers: {
+        headers: {'ngrok-skip-browser-warning': 'true', 
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token',
         },
@@ -155,7 +155,7 @@ class AuthService {
 
       final response = await http.get(
         Uri.parse('$userUrl/public/$userId'),
-        headers: {
+        headers: {'ngrok-skip-browser-warning': 'true', 
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token',
         },
@@ -186,7 +186,7 @@ class AuthService {
     try {
       final response = await http.post(
         Uri.parse('$authUrl/forgot-password'),
-        headers: {'Content-Type': 'application/json'},
+        headers: {'ngrok-skip-browser-warning': 'true', 'Content-Type': 'application/json'},
         body: jsonEncode({'email': email}),
       );
 
@@ -208,7 +208,7 @@ class AuthService {
     try {
       final response = await http.post(
         Uri.parse('$authUrl/change-password'),
-        headers: {'Content-Type': 'application/json'},
+        headers: {'ngrok-skip-browser-warning': 'true', 'Content-Type': 'application/json'},
         body: jsonEncode({
           'email': email,
           'oldPassword': oldPassword,
