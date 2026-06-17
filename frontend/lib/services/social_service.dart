@@ -3,7 +3,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 
 class SocialService {
-  static const String baseUrl = 'https://plateq-backend.onrender.com/api/social';
+  static const String baseUrl = 'https://publisher-neurotic-affluent.ngrok-free.dev/api/social';
 
   static Future<Map<String, dynamic>> toggleFollow(int userId) async {
     final prefs = await SharedPreferences.getInstance();

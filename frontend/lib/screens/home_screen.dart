@@ -66,7 +66,7 @@ class _HomeScreenState extends State<HomeScreen> {
       if (token.isEmpty) return;
 
       final response = await http.get(
-        Uri.parse('https://plateq-backend.onrender.com/api/social/notifications'),
+        Uri.parse('https://publisher-neurotic-affluent.ngrok-free.dev/api/social/notifications'),
         headers: {'Authorization': 'Bearer $token'}
       );
 
@@ -350,7 +350,7 @@ class RecipeGridCard extends StatelessWidget {
                         ? Hero(
                             tag: 'recipe-image-${recipe.id}',
                             child: Image.network(
-                              'https://plateq-backend.onrender.com/uploads/${recipe.image}',
+                              'https://publisher-neurotic-affluent.ngrok-free.dev/uploads/${recipe.image}',
                               fit: BoxFit.cover,
                               errorBuilder: (context, error, stackTrace) => const Icon(Icons.broken_image, color: Colors.grey, size: 40),
                             ),

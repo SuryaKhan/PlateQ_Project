@@ -27,7 +27,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
       final token = prefs.getString('jwt_token') ?? '';
       
       final response = await http.get(
-        Uri.parse('https://plateq-backend.onrender.com/api/social/notifications'),
+        Uri.parse('https://publisher-neurotic-affluent.ngrok-free.dev/api/social/notifications'),
         headers: {'Authorization': 'Bearer $token'}
       );
 
@@ -56,7 +56,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
     if (token.isNotEmpty) {
       try {
         await http.put(
-          Uri.parse('https://plateq-backend.onrender.com/api/social/notifications/read'),
+          Uri.parse('https://publisher-neurotic-affluent.ngrok-free.dev/api/social/notifications/read'),
           headers: {'Authorization': 'Bearer $token'}
         );
       } catch (e) {

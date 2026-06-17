@@ -34,7 +34,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
       final token = prefs.getString('jwt_token') ?? '';
       
       final response = await http.get(
-        Uri.parse('https://plateq-backend.onrender.com/api/admin/stats'),
+        Uri.parse('https://publisher-neurotic-affluent.ngrok-free.dev/api/admin/stats'),
         headers: {
           'Authorization': 'Bearer $token'
         }
@@ -314,7 +314,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                   final token = prefs.getString('jwt_token') ?? '';
                   try {
                     final response = await http.post(
-                      Uri.parse('https://plateq-backend.onrender.com/api/admin/announcements'),
+                      Uri.parse('https://publisher-neurotic-affluent.ngrok-free.dev/api/admin/announcements'),
                       headers: {
                         'Content-Type': 'application/json',
                         'Authorization': 'Bearer $token'
@@ -405,7 +405,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                   final token = prefs.getString('jwt_token') ?? '';
                   try {
                     final response = await http.post(
-                      Uri.parse('https://plateq-backend.onrender.com/api/app/version'),
+                      Uri.parse('https://publisher-neurotic-affluent.ngrok-free.dev/api/app/version'),
                       headers: {
                         'Content-Type': 'application/json',
                         'Authorization': 'Bearer $token'

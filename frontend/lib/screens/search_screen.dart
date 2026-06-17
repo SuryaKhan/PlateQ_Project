@@ -79,7 +79,7 @@ class _SearchScreenState extends State<SearchScreen> {
     try {
       if (_searchType == 0) {
         // Search Recipes
-        final res = await http.get(Uri.parse('https://plateq-backend.onrender.com/api/recipes?search=$query&page=$_page&limit=$_limit'));
+        final res = await http.get(Uri.parse('https://publisher-neurotic-affluent.ngrok-free.dev/api/recipes?search=$query&page=$_page&limit=$_limit'));
         if (res.statusCode == 200) {
           final decoded = jsonDecode(res.body);
           if (decoded is List) {
@@ -102,7 +102,7 @@ class _SearchScreenState extends State<SearchScreen> {
         }
         
         final res = await http.get(
-          Uri.parse('https://plateq-backend.onrender.com/api/users/search?q=$query'),
+          Uri.parse('https://publisher-neurotic-affluent.ngrok-free.dev/api/users/search?q=$query'),
           headers: _token != null ? {'Authorization': 'Bearer $_token'} : {},
         );
         if (res.statusCode == 200) {
@@ -126,7 +126,7 @@ class _SearchScreenState extends State<SearchScreen> {
     setState(() => _isFetchingMore = true);
     _page++;
     try {
-      final res = await http.get(Uri.parse('https://plateq-backend.onrender.com/api/recipes?search=$_searchQuery&page=$_page&limit=$_limit'));
+      final res = await http.get(Uri.parse('https://publisher-neurotic-affluent.ngrok-free.dev/api/recipes?search=$_searchQuery&page=$_page&limit=$_limit'));
       if (res.statusCode == 200) {
         final decoded = jsonDecode(res.body);
         if (decoded is List) {
@@ -384,7 +384,7 @@ class _SearchScreenState extends State<SearchScreen> {
                         radius: 25,
                         backgroundColor: const Color(0xFFE2E8F0),
                         backgroundImage: user['profileImage'] != null 
-                            ? NetworkImage('https://plateq-backend.onrender.com/uploads/${user['profileImage']}') 
+                            ? NetworkImage('https://publisher-neurotic-affluent.ngrok-free.dev/uploads/${user['profileImage']}') 
                             : null,
                         child: user['profileImage'] == null 
                             ? const Icon(Icons.person, color: Colors.grey) 

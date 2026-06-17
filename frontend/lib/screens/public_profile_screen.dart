@@ -80,7 +80,7 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
                         radius: 55,
                         backgroundColor: const Color(0xFFE2E8F0),
                         backgroundImage: user['profileImage'] != null
-                            ? NetworkImage('https://plateq-backend.onrender.com/uploads/${user['profileImage']}')
+                            ? NetworkImage('https://publisher-neurotic-affluent.ngrok-free.dev/uploads/${user['profileImage']}')
                             : null,
                         child: user['profileImage'] == null
                             ? const Icon(Icons.person, size: 55, color: Colors.grey)
@@ -219,7 +219,7 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
                     ),
                     child: recipe.image != null
                         ? Image.network(
-                            'https://plateq-backend.onrender.com/uploads/${recipe.image}',
+                            'https://publisher-neurotic-affluent.ngrok-free.dev/uploads/${recipe.image}',
                             fit: BoxFit.cover,
                           )
                         : Container(color: Theme.of(context).colorScheme.surfaceContainerHighest),
