@@ -3,15 +3,10 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "sqlite"
 }
 
-// Enum Hak Akses
-enum Role {
-  USER
-  ADMIN
-  SUPERADMIN
-}
+
 
 // 1. MODEL USER
 // Menyimpan data akun dan profil selera (Taste Profile)
@@ -25,7 +20,7 @@ model User {
   preferences  String?   // Taste Profile (Vegetarian, Pedas, dll)
   profileImage String?   // Foto profil user
   phone        String?   // Nomor Telepon
-  role         Role      @default(USER) // Hak akses pengguna
+  role String @default("USER") // Hak akses pengguna
   createdAt    DateTime  @default(now())
   
   recipes      Recipe[]  // Resep yang dibuat user
