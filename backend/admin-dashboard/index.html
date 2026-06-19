@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PlateQ Superadmin Dashboard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Inter', sans-serif; background-color: #f8fafc; }
+    .glass {
+      background: rgba(255, 255, 255, 0.7);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.18);
+    }
+  </style>
+</head>
+<body class="text-slate-800">
+
+  <!-- Login Section -->
+  <div id="login-section" class="min-h-screen flex items-center justify-center">
+    <div class="glass p-8 rounded-2xl shadow-xl w-96 text-center">
+      <div class="mb-6">
+        <h1 class="text-3xl font-extrabold text-orange-500">Plate'Q</h1>
+        <p class="text-slate-500 text-sm mt-1">Superadmin Portal</p>
+      </div>
+      <form id="login-form" onsubmit="handleLogin(event)">
+        <input type="text" id="username" placeholder="Username" class="w-full px-4 py-3 rounded-lg bg-white border border-slate-200 focus:outline-none focus:ring-2 focus:ring-orange-500 mb-4" required>
+        <input type="password" id="password" placeholder="Password" class="w-full px-4 py-3 rounded-lg bg-white border border-slate-200 focus:outline-none focus:ring-2 focus:ring-orange-500 mb-6" required>
+        <button type="submit" class="w-full bg-orange-500 text-white font-bold py-3 rounded-lg hover:bg-orange-600 transition shadow-lg shadow-orange-500/30">Login</button>
+      </form>
+      <p id="login-error" class="text-red-500 text-sm mt-4 hidden"></p>
+    </div>
+  </div>
+
+  <!-- Dashboard Section -->
+  <div id="dashboard-section" class="hidden min-h-screen flex">
+    <!-- Sidebar -->
+    <div class="w-64 bg-white border-r border-slate-200 p-6 flex flex-col">
+      <h1 class="text-2xl font-extrabold text-orange-500 mb-8">Plate'Q<span class="text-xs ml-1 bg-blue-100 text-blue-600 px-2 py-1 rounded-full">SUPER</span></h1>
+      <nav class="flex-1 space-y-2">
+        <a href="#" class="block px-4 py-2 bg-orange-50 text-orange-600 rounded-lg font-semibold">Dashboard</a>
+      </nav>
+      <button onclick="logout()" class="mt-auto px-4 py-2 text-red-500 hover:bg-red-50 rounded-lg text-left font-semibold flex items-center">
+        Logout
+      </button>
+    </div>
+
+    <!-- Main Content -->
+    <div class="flex-1 p-8">
+      <header class="flex justify-between items-center mb-8">
+        <div>
+          <h2 class="text-2xl font-bold">System Overview</h2>
+          <p class="text-slate-500 text-sm">Real-time metrics from API Gateway</p>
+        </div>
+        <div class="flex items-center space-x-3">
+          <div class="w-10 h-10 rounded-full bg-slate-200 flex items-center justify-center font-bold text-slate-500" id="user-avatar">SA</div>
+        </div>
+      </header>
+
+      <!-- Stats Cards -->
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+        <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
+          <h3 class="text-slate-500 font-semibold mb-2">Total Users</h3>
+          <p class="text-4xl font-bold text-slate-800" id="stat-users">0</p>
+        </div>
+        <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
+          <h3 class="text-slate-500 font-semibold mb-2">Total Recipes</h3>
+          <p class="text-4xl font-bold text-slate-800" id="stat-recipes">0</p>
+        </div>
+        <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
+          <h3 class="text-slate-500 font-semibold mb-2">Total Categories</h3>
+          <p class="text-4xl font-bold text-slate-800" id="stat-categories">0</p>
+        </div>
+        <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
+          <h3 class="text-slate-500 font-semibold mb-2">Active Microservices</h3>
+          <p class="text-4xl font-bold text-green-500">3 <span class="text-sm font-normal text-slate-400">Online</span></p>
+        </div>
+      </div>
+
+      <!-- Recent Recipes Table -->
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+        <div class="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50">
+          <h3 class="font-bold text-slate-800">Recent Recipes</h3>
+          <span class="text-xs font-semibold text-slate-500 bg-white px-2 py-1 rounded border border-slate-200">Read-only via Gateway</span>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse">
+            <thead>
+              <tr class="bg-white border-b border-slate-100 text-slate-500 text-sm">
+                <th class="p-4 font-semibold">Title</th>
+                <th class="p-4 font-semibold">Difficulty</th>
+                <th class="p-4 font-semibold">Time</th>
+                <th class="p-4 font-semibold">Likes</th>
+              </tr>
+            </thead>
+            <tbody id="recipes-table" class="text-sm">
+              <!-- Data will be injected here -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- New Section: Users & Broadcast -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8">
+        <!-- Recent Users Table -->
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+          <div class="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50">
+            <h3 class="font-bold text-slate-800">Recent Users</h3>
+            <span class="text-xs font-semibold text-slate-500 bg-white px-2 py-1 rounded border border-slate-200">Admin Control</span>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+              <thead>
+                <tr class="bg-white border-b border-slate-100 text-slate-500 text-sm">
+                  <th class="p-4 font-semibold">Username</th>
+                  <th class="p-4 font-semibold">Email</th>
+                  <th class="p-4 font-semibold">Role</th>
+                </tr>
+              </thead>
+              <tbody id="users-table" class="text-sm">
+                <!-- Data will be injected here -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Broadcast Announcement -->
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden flex flex-col">
+          <div class="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50">
+            <h3 class="font-bold text-slate-800">Broadcast Announcement</h3>
+            <span class="text-xs font-semibold text-blue-600 bg-blue-50 px-2 py-1 rounded border border-blue-200">Push Notif</span>
+          </div>
+          <div class="p-6 flex-1">
+            <form id="announce-form" onsubmit="sendAnnouncement(event)">
+              <div class="mb-4">
+                <input type="text" id="announce-title" placeholder="Judul Pengumuman" class="w-full px-4 py-2 rounded-lg bg-slate-50 border border-slate-200 focus:outline-none focus:ring-2 focus:ring-orange-500" required>
+              </div>
+              <div class="mb-4">
+                <select id="announce-category" class="w-full px-4 py-2 rounded-lg bg-slate-50 border border-slate-200 focus:outline-none focus:ring-2 focus:ring-orange-500">
+                  <option value="INFO">INFO</option>
+                  <option value="UPDATE_APK">UPDATE APK</option>
+                  <option value="MAINTENANCE">MAINTENANCE</option>
+                  <option value="PROMO">PROMO</option>
+                </select>
+              </div>
+              <div class="mb-4">
+                <textarea id="announce-content" placeholder="Isi pesan (akan masuk ke HP pengguna)..." class="w-full px-4 py-2 rounded-lg bg-slate-50 border border-slate-200 focus:outline-none focus:ring-2 focus:ring-orange-500 h-24 resize-none" required></textarea>
+              </div>
+              <button type="submit" id="btn-announce" class="w-full bg-blue-600 text-white font-bold py-3 rounded-lg hover:bg-blue-700 transition shadow-lg shadow-blue-600/30">Kirim Broadcast</button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Container -->
+  <div id="toast-container" class="fixed top-5 right-5 z-50 flex flex-col gap-3"></div>
+
+  <script>
+    const API_BASE = '/api'; // Mengarah ke API Gateway relatif
+
+    function showToast(message, type = 'success') {
+      const container = document.getElementById('toast-container');
+      const toast = document.createElement('div');
+      
+      const bgColor = type === 'success' ? 'bg-slate-800' : 'bg-red-500';
+      const icon = type === 'success' 
+        ? '<svg class="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>'
+        : '<svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>';
+
+      toast.className = `flex items-center p-4 rounded-xl shadow-2xl text-white ${bgColor} transform transition-all duration-300 translate-x-full opacity-0 min-w-[300px] border border-slate-700`;
+      toast.innerHTML = `
+        <div class="mr-3 bg-slate-700 p-2 rounded-lg">${icon}</div>
+        <div class="font-medium text-sm leading-snug">${message}</div>
+      `;
+      
+      container.appendChild(toast);
+      
+      setTimeout(() => toast.classList.remove('translate-x-full', 'opacity-0'), 10);
+      
+      setTimeout(() => {
+        toast.classList.add('translate-x-full', 'opacity-0');
+        setTimeout(() => toast.remove(), 300);
+      }, 4000);
+    }
+
+    async function handleLogin(e) {
+      e.preventDefault();
+      const username = document.getElementById('username').value;
+      const password = document.getElementById('password').value;
+      const errorEl = document.getElementById('login-error');
+      
+      try {
+        const response = await fetch(`${API_BASE}/auth/login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, password })
+        });
+        const data = await response.json();
+
+        if (response.ok) {
+          if (data.user.role === 'SUPERADMIN' || data.user.role === 'ADMIN') {
+            localStorage.setItem('admin_token', data.token);
+            const displayName = data.user.name || data.user.username || 'Admin';
+            document.getElementById('user-avatar').innerText = displayName.charAt(0).toUpperCase();
+            showDashboard();
+            fetchDashboardData();
+          } else {
+            errorEl.innerText = "Akses ditolak! Hanya untuk Admin/Superadmin.";
+            errorEl.classList.remove('hidden');
+          }
+        } else {
+          errorEl.innerText = data.error || "Login gagal";
+          errorEl.classList.remove('hidden');
+        }
+      } catch (err) {
+        console.error("Login error:", err);
+        errorEl.innerText = "Terjadi kesalahan sistem atau API mati.";
+        errorEl.classList.remove('hidden');
+      }
+    }
+
+    function showDashboard() {
+      document.getElementById('login-section').classList.add('hidden');
+      document.getElementById('dashboard-section').classList.remove('hidden');
+    }
+
+    function logout() {
+      localStorage.removeItem('admin_token');
+      document.getElementById('login-error').classList.add('hidden');
+      document.getElementById('password').value = '';
+      document.getElementById('login-section').classList.remove('hidden');
+      document.getElementById('dashboard-section').classList.add('hidden');
+    }
+
+    async function fetchDashboardData() {
+      try {
+        // Fetch recipes (public endpoint, no token needed just for viewing stats)
+        const resRecipes = await fetch(`${API_BASE}/recipes?limit=5`);
+        const dataRecipes = await resRecipes.json();
+        
+        document.getElementById('stat-recipes').innerText = dataRecipes.length || 0;
+
+        try {
+          const resCat = await fetch(`${API_BASE}/recipes/categories/all`);
+          if (resCat.ok) {
+            const dataCat = await resCat.json();
+            document.getElementById('stat-categories').innerText = dataCat.length || 4;
+          } else {
+            document.getElementById('stat-categories').innerText = 4;
+          }
+        } catch(e) {
+          document.getElementById('stat-categories').innerText = 4;
+        }
+
+        // Render table
+        const tbody = document.getElementById('recipes-table');
+        tbody.innerHTML = '';
+        dataRecipes.slice(0, 5).forEach(r => {
+          tbody.innerHTML += `
+            <tr class="border-b border-slate-50 hover:bg-slate-50">
+              <td class="p-4 font-medium text-slate-800">${r.title}</td>
+              <td class="p-4">
+                <span class="px-2 py-1 text-xs rounded-full ${r.difficulty === 'Mudah' ? 'bg-green-100 text-green-700' : 'bg-orange-100 text-orange-700'}">${r.difficulty}</span>
+              </td>
+              <td class="p-4 text-slate-500">${r.cookingTime}</td>
+              <td class="p-4 text-slate-500 flex items-center"><svg class="w-4 h-4 mr-1 text-red-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clip-rule="evenodd"></path></svg> ${r._count?.likes || 0}</td>
+            </tr>
+          `;
+        });
+
+        // Fetch Users (Requires Admin Token)
+        const token = localStorage.getItem('admin_token');
+        if (token) {
+          const resUsers = await fetch(`${API_BASE}/admin/users`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+          });
+          if (resUsers.ok) {
+            const dataUsers = await resUsers.json();
+            document.getElementById('stat-users').innerText = dataUsers.length || 0;
+            
+            const usersTable = document.getElementById('users-table');
+            if (usersTable) {
+              usersTable.innerHTML = '';
+              dataUsers.slice(0, 5).forEach(u => {
+                usersTable.innerHTML += `
+                  <tr class="border-b border-slate-50 hover:bg-slate-50">
+                    <td class="p-4 font-medium text-slate-800">${u.username}</td>
+                    <td class="p-4 text-slate-500">${u.email}</td>
+                    <td class="p-4">
+                      <span class="px-2 py-1 text-xs font-semibold rounded-full ${u.role === 'SUPERADMIN' ? 'bg-blue-100 text-blue-700' : u.role === 'ADMIN' ? 'bg-purple-100 text-purple-700' : 'bg-slate-100 text-slate-700'}">${u.role}</span>
+                    </td>
+                  </tr>
+                `;
+              });
+            }
+          }
+        }
+      } catch (err) {
+        console.error("Error fetching data", err);
+      }
+    }
+
+    async function sendAnnouncement(e) {
+      e.preventDefault();
+      const title = document.getElementById('announce-title').value;
+      const content = document.getElementById('announce-content').value;
+      const category = document.getElementById('announce-category').value;
+      const btn = document.getElementById('btn-announce');
+      
+      btn.innerText = "Mengirim...";
+      btn.disabled = true;
+      
+      try {
+        const res = await fetch(`${API_BASE}/admin/announcements`, {
+          method: 'POST',
+          headers: { 
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('admin_token')}`
+          },
+          body: JSON.stringify({ title, content, category })
+        });
+        if(res.ok) {
+          showToast("Pengumuman berhasil dikirim ke semua HP pengguna PlateQ!", 'success');
+          document.getElementById('announce-form').reset();
+        } else {
+          showToast("Gagal mengirim pengumuman. Pastikan login sebagai Superadmin.", 'error');
+        }
+      } catch(err) {
+        showToast("Error server.", 'error');
+      }
+      
+      btn.innerText = "Kirim Broadcast";
+      btn.disabled = false;
+    }
+
+    // Check auth on load
+    if (localStorage.getItem('admin_token')) {
+      showDashboard();
+      fetchDashboardData();
+    }
+  </script>
+</body>
+</html>

@@ -6,6 +6,7 @@ const authMiddleware = require('../middleware/authMiddleware');
 // Endpoint untuk pengumuman
 router.post('/announcements', authMiddleware, adminController.createAnnouncement);
 router.get('/announcements', adminController.getAnnouncements); // Public/Users bisa lihat
+router.delete('/announcements/:id', authMiddleware, adminController.deleteAnnouncement);
 
 // Endpoint untuk kategori
 router.post('/categories', authMiddleware, adminController.createCategory);

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'screens/splash_screen.dart';
 import 'theme/theme_manager.dart';
+import 'widgets/gradient_background.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -19,9 +20,12 @@ class PlateQApp extends StatelessWidget {
           debugShowCheckedModeBanner: false,
           title: "Plate'Q",
           themeMode: currentMode,
+          builder: (context, child) {
+            return GradientBackground(child: child!);
+          },
           theme: ThemeData(
             brightness: Brightness.light,
-            scaffoldBackgroundColor: const Color(0xFFF8F9FB),
+            scaffoldBackgroundColor: Colors.transparent, // Transparan agar gradient terlihat
             primaryColor: const Color(0xFF1E293B),
             colorScheme: const ColorScheme.light(
               primary: Color(0xFF1E293B),
@@ -29,7 +33,7 @@ class PlateQApp extends StatelessWidget {
               surface: Colors.white,
             ),
             appBarTheme: const AppBarTheme(
-              backgroundColor: Color(0xFFF8F9FB),
+              backgroundColor: Colors.transparent,
               foregroundColor: Color(0xFF1E293B),
               elevation: 0,
             ),
@@ -37,7 +41,7 @@ class PlateQApp extends StatelessWidget {
           ),
           darkTheme: ThemeData(
             brightness: Brightness.dark,
-            scaffoldBackgroundColor: const Color(0xFF121212), // Premium Dark (OLED style)
+            scaffoldBackgroundColor: Colors.transparent, // Transparan agar gradient terlihat
             primaryColor: const Color(0xFFD4AF37), // Elegant Gold
             colorScheme: const ColorScheme.dark(
               primary: Color(0xFFD4AF37),
@@ -45,12 +49,12 @@ class PlateQApp extends StatelessWidget {
               surface: Color(0xFF1E1E1E), // Elegant Dark Card
             ),
             appBarTheme: const AppBarTheme(
-              backgroundColor: Color(0xFF121212),
+              backgroundColor: Colors.transparent,
               foregroundColor: Colors.white,
               elevation: 0,
             ),
             bottomNavigationBarTheme: const BottomNavigationBarThemeData(
-              backgroundColor: Color(0xFF1E1E1E),
+              backgroundColor: Color(0xFF1E1E1E), // Elegant Dark Card for Nav
               selectedItemColor: Color(0xFFD4AF37), // Emas untuk menu aktif
               unselectedItemColor: Colors.grey,
             ),

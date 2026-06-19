@@ -3,170 +3,124 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
-
-
-// 1. MODEL USER
-// Menyimpan data akun dan profil selera (Taste Profile)
 model User {
-  id           Int       @id @default(autoincrement())
-  username     String    @unique
-  email        String    @unique
-  password     String
-  name         String?   // Nama lengkap (Chef Name)
-  bio          String?   // Bio singkat
-  preferences  String?   // Taste Profile (Vegetarian, Pedas, dll)
-  profileImage String?   // Foto profil user
-  phone        String?   // Nomor Telepon
-  role String @default("USER") // Hak akses pengguna
-  createdAt    DateTime  @default(now())
-  
-  recipes      Recipe[]  // Resep yang dibuat user
-  comments     Comment[] // Komentar yang ditulis user
-  likes        Like[]    // Resep yang disukai/di-bookmark user
-  announcements Announcement[] // Pengumuman yang dibuat oleh Admin/Superadmin
-  
-  // Phase 7: Social Features
-  followers    Follow[]  @relation("UserFollowers")
-  following    Follow[]  @relation("UserFollowing")
-  cooksnaps    Cooksnap[]
-  collections  Collection[]
+  id            Int            @id @default(autoincrement())
+  username      String         @unique
+  email         String         @unique
+  password      String
+  name          String?
+  bio           String?
+  preferences   String?
+  profileImage  String?
+  phone         String?
+  role          Role           @default(USER)
+  createdAt     DateTime       @default(now())
+  announcements Announcement[]
+  collections   Collection[]
+  comments      Comment[]
+  cooksnaps     Cooksnap[]
+  following     Follow[]       @relation("UserFollowing")
+  followers     Follow[]       @relation("UserFollowers")
+  likes         Like[]
   notifications Notification[]
+  recipes       Recipe[]
 }
 
-// 9. MODEL APP VERSION (In-App Updates)
-// Menyimpan informasi pembaruan versi aplikasi
-model AppVersion {
-  id            Int      @id @default(autoincrement())
-  versionString String   // contoh: "1.0.1"
-  buildNumber   Int      // contoh: 2 (sebagai penanda teknis pembaruan)
-  releaseNotes  String?  // Catatan rilis/fitur baru
-  apkUrl        String   // Link download file APK (Google Drive/Mediafire)
-  isMandatory   Boolean  @default(false) // Jika true, user tidak bisa skip update
-  createdAt     DateTime @default(now())
-}
-
-// 2. MODEL RECIPE
-// Jantung aplikasi Plate'Q. Disesuaikan dengan mockup Explore.
 model Recipe {
-  id           Int       @id @default(autoincrement())
-  title        String
-  content      String    // Langkah-langkah memasak
-  image        String?   // URL/Nama file foto masakan di folder uploads
-  
-  // Field tambahan agar sesuai Mockup:
-  difficulty   String    @default("Easy")   // Easy, Medium, Hard
-  cookingTime  String    @default("30 min") // Contoh: "45 min"
-  rating       Float     @default(0.0)      // Bintang di mockup
-  reviewsCount Int       @default(0)        // Angka di dalam kurung (128)
-  
-  categoryId   Int?
-  category     Category? @relation(fields: [categoryId], references: [id])
-
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
-
-  authorId     Int
-  author       User      @relation(fields: [authorId], references: [id])
-  
-  comments     Comment[]
-  likes        Like[]
-  cooksnaps    Cooksnap[]
+  id              Int              @id @default(autoincrement())
+  title           String
+  content         String
+  image           String?
+  difficulty      String           @default("Easy")
+  cookingTime     String           @default("30 min")
+  rating          Float            @default(0.0)
+  reviewsCount    Int              @default(0)
+  categoryId      Int?
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  authorId        Int
   collectionItems CollectionItem[]
+  comments        Comment[]
+  cooksnaps       Cooksnap[]
+  likes           Like[]
+  author          User             @relation(fields: [authorId], references: [id])
+  category        Category?        @relation(fields: [categoryId], references: [id])
 }
 
-// 3. MODEL LIKE (BOOKMARK)
-// Biar ikon Love di mockup bisa diklik dan disimpan
 model Like {
-  id        Int      @id @default(autoincrement())
-  userId    Int
-  recipeId  Int
-  user      User     @relation(fields: [userId], references: [id])
-  recipe    Recipe   @relation(fields: [recipeId], references: [id])
+  id       Int    @id @default(autoincrement())
+  userId   Int
+  recipeId Int
+  recipe   Recipe @relation(fields: [recipeId], references: [id])
+  user     User   @relation(fields: [userId], references: [id])
 
-  @@unique([userId, recipeId]) // Satu user cuma bisa like satu resep sekali
+  @@unique([userId, recipeId])
 }
 
-// 4. MODEL COMMENT
-// Mendukung fitur diskusi antar Chef (Chef Community)
 model Comment {
   id        Int       @id @default(autoincrement())
   text      String
   createdAt DateTime  @default(now())
-  
   userId    Int
-  user      User      @relation(fields: [userId], references: [id])
-
   recipeId  Int
-  recipe    Recipe    @relation(fields: [recipeId], references: [id])
-
-  // Fitur Balasan Komentar (Nested Replies)
-  parentId  Int?      
+  parentId  Int?
   parent    Comment?  @relation("CommentReplies", fields: [parentId], references: [id])
   replies   Comment[] @relation("CommentReplies")
+  recipe    Recipe    @relation(fields: [recipeId], references: [id])
+  user      User      @relation(fields: [userId], references: [id])
 }
 
-// 5. MODEL CATEGORY
-// Untuk kategori resep yang dinamis (bisa ditambah admin)
 model Category {
   id        Int      @id @default(autoincrement())
   name      String   @unique
-  icon      String?  // URL/Nama icon kategori
+  icon      String?
   createdAt DateTime @default(now())
   recipes   Recipe[]
 }
 
-// 6. MODEL ANNOUNCEMENT
-// Untuk informasi/update dari Admin dan Superadmin
 model Announcement {
   id        Int      @id @default(autoincrement())
   title     String
   content   String
-  category  String   @default("INFO") // INFO, UPDATE_APK, EVENT
   createdAt DateTime @default(now())
-
   authorId  Int
+  category  String   @default("INFO")
   author    User     @relation(fields: [authorId], references: [id])
 }
 
-// 7. MODEL FOLLOW
-// Untuk fitur Follow & Followers antar Chef
 model Follow {
   id          Int      @id @default(autoincrement())
-  followerId  Int      // Orang yang memfollow
-  followingId Int      // Orang yang difollow
+  followerId  Int
+  followingId Int
+  createdAt   DateTime @default(now())
   follower    User     @relation("UserFollowing", fields: [followerId], references: [id])
   following   User     @relation("UserFollowers", fields: [followingId], references: [id])
-  createdAt   DateTime @default(now())
 
   @@unique([followerId, followingId])
 }
 
-// 8. MODEL COOKSNAP
-// Fitur "I Made This!" foto bukti memasak
 model Cooksnap {
   id        Int      @id @default(autoincrement())
   userId    Int
   recipeId  Int
-  image     String   // Uploaded image URL/filename
+  image     String
   comment   String?
   createdAt DateTime @default(now())
-
-  user      User     @relation(fields: [userId], references: [id])
   recipe    Recipe   @relation(fields: [recipeId], references: [id])
+  user      User     @relation(fields: [userId], references: [id])
 }
 
-// 9. MODEL COLLECTION & COLLECTION ITEM
-// Folder untuk mengelompokkan resep tersimpan
 model Collection {
-  id        Int      @id @default(autoincrement())
+  id        Int              @id @default(autoincrement())
   userId    Int
-  name      String   // Misalnya: "Menu Diet", "Ide Bekal"
-  createdAt DateTime @default(now())
-
-  user      User     @relation(fields: [userId], references: [id])
+  name      String
+  createdAt DateTime         @default(now())
+  user      User             @relation(fields: [userId], references: [id])
   items     CollectionItem[]
 }
 
@@ -175,22 +129,24 @@ model CollectionItem {
   collectionId Int
   recipeId     Int
   createdAt    DateTime   @default(now())
-
   collection   Collection @relation(fields: [collectionId], references: [id], onDelete: Cascade)
   recipe       Recipe     @relation(fields: [recipeId], references: [id], onDelete: Cascade)
 
   @@unique([collectionId, recipeId])
 }
 
-// 10. MODEL NOTIFICATION
-// Lonceng notifikasi
 model Notification {
   id        Int      @id @default(autoincrement())
-  userId    Int      // Penerima notifikasi
-  type      String   // "LIKE", "COMMENT", "FOLLOW", "COOKSNAP"
+  userId    Int
+  type      String
   message   String
   isRead    Boolean  @default(false)
   createdAt DateTime @default(now())
-
   user      User     @relation(fields: [userId], references: [id])
+}
+
+enum Role {
+  USER
+  ADMIN
+  SUPERADMIN
 }

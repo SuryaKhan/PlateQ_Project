@@ -17,6 +17,8 @@ const upload = multer({ storage });
 
 // Follow & Unfollow
 router.post('/follow/:id', authenticateToken, socialController.toggleFollow);
+router.get('/users/:id/followers', authenticateToken, socialController.getFollowers);
+router.get('/users/:id/following', authenticateToken, socialController.getFollowing);
 
 // Cooksnaps
 router.post('/recipes/:recipeId/cooksnaps', authenticateToken, upload.single('image'), socialController.uploadCooksnap);
@@ -29,6 +31,7 @@ router.post('/collections/:collectionId/recipes/:recipeId', authenticateToken, s
 // Notifications
 router.get('/notifications', authenticateToken, socialController.getNotifications);
 router.put('/notifications/read', authenticateToken, socialController.markNotificationsAsRead);
+router.delete('/notifications/:id', authenticateToken, socialController.deleteNotification);
 
 // Feed
 router.get('/feed', authenticateToken, socialController.getFeed);

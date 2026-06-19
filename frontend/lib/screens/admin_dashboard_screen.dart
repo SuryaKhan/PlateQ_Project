@@ -34,7 +34,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
       final token = prefs.getString('jwt_token') ?? '';
       
       final response = await http.get(
-        Uri.parse('https://publisher-neurotic-affluent.ngrok-free.dev/api/admin/stats'),
+        Uri.parse('http://208.76.40.81:3000/api/admin/stats'),
         headers: {'ngrok-skip-browser-warning': 'true', 
           'Authorization': 'Bearer $token'
         }
@@ -69,7 +69,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
     final textColor = Theme.of(context).textTheme.bodyLarge?.color ?? Colors.black;
 
     return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      backgroundColor: Colors.transparent,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -314,7 +314,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                   final token = prefs.getString('jwt_token') ?? '';
                   try {
                     final response = await http.post(
-                      Uri.parse('https://publisher-neurotic-affluent.ngrok-free.dev/api/admin/announcements'),
+                      Uri.parse('http://208.76.40.81:3000/api/admin/announcements'),
                       headers: {'ngrok-skip-browser-warning': 'true', 
                         'Content-Type': 'application/json',
                         'Authorization': 'Bearer $token'
@@ -405,7 +405,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                   final token = prefs.getString('jwt_token') ?? '';
                   try {
                     final response = await http.post(
-                      Uri.parse('https://publisher-neurotic-affluent.ngrok-free.dev/api/app/version'),
+                      Uri.parse('http://208.76.40.81:3000/api/app/version'),
                       headers: {'ngrok-skip-browser-warning': 'true', 
                         'Content-Type': 'application/json',
                         'Authorization': 'Bearer $token'

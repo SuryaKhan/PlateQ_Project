@@ -66,7 +66,7 @@ class _HomeScreenState extends State<HomeScreen> {
       if (token.isEmpty) return;
 
       final response = await http.get(
-        Uri.parse('https://publisher-neurotic-affluent.ngrok-free.dev/api/social/notifications'),
+        Uri.parse('http://208.76.40.81:3000/api/social/notifications'),
         headers: {'ngrok-skip-browser-warning': 'true', 'Authorization': 'Bearer $token'}
       );
 
@@ -129,18 +129,24 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _fetchRecipes() {
-    final List<int?> categoryIds = [null, 1, 3, 4];
     setState(() {
-      _recipesFuture = RecipeService.fetchRecipes(
-        categoryId: categoryIds[_selectedCategoryIndex],
-      );
+      _recipesFuture = RecipeService.fetchRecipes().then((recipes) {
+        if (_selectedCategoryIndex == 0) return recipes;
+        if (_selectedCategoryIndex == 1) { // Makanan
+          return recipes.where((r) => r.categoryName == 'Makanan' || r.categoryName == null).toList();
+        }
+        if (_selectedCategoryIndex == 2) { // Minuman
+          return recipes.where((r) => r.categoryName == 'Minuman').toList();
+        }
+        return recipes.where((r) => r.categoryName == 'Dessert').toList();
+      });
     });
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Theme.of(context).colorScheme.surface,
+      backgroundColor: Colors.transparent, // Transparan agar global gradient terlihat
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 20.0),
@@ -267,7 +273,11 @@ class _HomeScreenState extends State<HomeScreen> {
                     List<Recipe> recipes = allRecipes;
                     if (_selectedCategoryIndex != 0) {
                       final selectedCategoryName = _categories[_selectedCategoryIndex];
-                      recipes = allRecipes.where((r) => r.categoryName == selectedCategoryName).toList();
+                      if (_selectedCategoryIndex == 1) { // Makanan
+                        recipes = allRecipes.where((r) => r.categoryName == 'Makanan' || r.categoryName == null).toList();
+                      } else {
+                        recipes = allRecipes.where((r) => r.categoryName == selectedCategoryName).toList();
+                      }
                     }
 
                     if (recipes.isEmpty) {
@@ -350,7 +360,7 @@ class RecipeGridCard extends StatelessWidget {
                         ? Hero(
                             tag: 'recipe-image-${recipe.id}',
                             child: Image.network(
-                              'https://publisher-neurotic-affluent.ngrok-free.dev/uploads/${recipe.image}',
+                              'http://208.76.40.81:3000/uploads/${recipe.image}',
                               fit: BoxFit.cover,
                               errorBuilder: (context, error, stackTrace) => const Icon(Icons.broken_image, color: Colors.grey, size: 40),
                             ),
@@ -379,6 +389,17 @@ class RecipeGridCard extends StatelessWidget {
                       const SizedBox(height: 4),
                       Row(
                         children: [
+                          CircleAvatar(
+                            radius: 8,
+                            backgroundColor: Colors.grey.shade300,
+                            backgroundImage: recipe.authorProfileImage != null && recipe.authorProfileImage!.isNotEmpty
+                                ? NetworkImage('http://208.76.40.81:3000/uploads/${recipe.authorProfileImage!}')
+                                : null,
+                            child: recipe.authorProfileImage == null || recipe.authorProfileImage!.isEmpty
+                                ? const Icon(Icons.person, size: 10, color: Colors.grey)
+                                : null,
+                          ),
+                          const SizedBox(width: 4),
                           Expanded(
                             child: Text(
                               'Oleh: ${recipe.authorName}',

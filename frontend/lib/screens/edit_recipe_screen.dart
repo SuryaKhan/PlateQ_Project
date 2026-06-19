@@ -186,9 +186,9 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Theme.of(context).colorScheme.surface,
+      backgroundColor: Colors.transparent,
       appBar: AppBar(
-        backgroundColor: Theme.of(context).colorScheme.surface,
+        backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
           icon: Icon(
@@ -253,7 +253,7 @@ class _EditRecipeScreenState extends State<EditRecipeScreen> {
                             widget.recipe.image!.isNotEmpty)
                       ? DecorationImage(
                           image: NetworkImage(
-                            "https://publisher-neurotic-affluent.ngrok-free.dev/uploads/${widget.recipe.image}",
+                            "http://208.76.40.81:3000/uploads/${widget.recipe.image}",
                           ),
                           fit: BoxFit.cover,
                         )

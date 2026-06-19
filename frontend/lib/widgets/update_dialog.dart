@@ -119,10 +119,29 @@ class UpdateDialog extends StatelessWidget {
                       Expanded(
                         child: ElevatedButton(
                           onPressed: () {
-                            // Simulasi update: Buka Play Store / App Store
                             Navigator.pop(context);
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text("Mengalihkan ke Play Store..."))
+                            showDialog(
+                              context: context,
+                              builder: (context) => AlertDialog(
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                                title: const Row(
+                                  children: [
+                                    Icon(Icons.rocket_launch, color: Colors.blue),
+                                    SizedBox(width: 10),
+                                    Text("Segera Hadir!", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+                                  ],
+                                ),
+                                content: const Text(
+                                  "Fitur pembaruan otomatis via Google Drive sedang dalam tahap pengembangan.\n\nUntuk saat ini, silakan hubungi Administrator untuk meminta file APK versi terbaru.",
+                                  style: TextStyle(height: 1.5),
+                                ),
+                                actions: [
+                                  TextButton(
+                                    onPressed: () => Navigator.pop(context),
+                                    child: const Text("Mengerti", style: TextStyle(fontWeight: FontWeight.bold)),
+                                  ),
+                                ],
+                              ),
                             );
                           },
                           style: ElevatedButton.styleFrom(

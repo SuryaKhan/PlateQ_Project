@@ -1,0 +1,13 @@
+@echo off
+echo Starting PlateQ Microservices...
+
+echo Starting Auth Service...
+start cmd /k "node server-auth.js"
+
+echo Starting Recipe Service...
+start cmd /k "node server-recipe.js"
+
+echo Starting API Gateway...
+start cmd /k "node server-gateway.js"
+
+echo All services started!

@@ -39,7 +39,7 @@ class _LoginScreenState extends State<LoginScreen> {
       );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Gagal masuk. Cek username/password kamu.")),
+        SnackBar(content: Text(AuthService.lastError.isNotEmpty ? AuthService.lastError : 'Gagal masuk.')),
       );
     }
   }
@@ -128,7 +128,7 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      backgroundColor: Colors.transparent,
       body: Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 500),
@@ -182,51 +182,25 @@ class _LoginScreenState extends State<LoginScreen> {
                 key: _formKey,
                 child: Column(
                   children: [
-                    TextFormField(
-                      controller: _usernameController,
-                      validator: (val) {
-                        if (val == null || val.isEmpty) return 'Username atau Email wajib diisi';
-                        return null;
-                      },
-                      decoration: InputDecoration(
-                        labelText: "Username atau Email",
-                        filled: true,
-                        fillColor: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF2D3748) : Colors.grey.shade200,
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(15),
-                          borderSide: BorderSide.none,
-                        ),
-                      ),
-                    ),
+                    _buildTextField("Username atau Email", "gusteau@curator.com", _usernameController, validator: (val) {
+                      if (val == null || val.isEmpty) return 'Username atau Email wajib diisi';
+                      return null;
+                    }),
                     SizedBox(height: 15),
-                    TextFormField(
-                      controller: _passwordController,
-                      obscureText: !_isPasswordVisible,
-                      validator: (val) {
-                        if (val == null || val.isEmpty) return 'Password wajib diisi';
-                        return null;
-                      },
-                      decoration: InputDecoration(
-                        labelText: "Password",
-                        filled: true,
-                        fillColor: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF2D3748) : Colors.grey.shade200,
-                        suffixIcon: IconButton(
-                          icon: Icon(
-                            _isPasswordVisible ? Icons.visibility : Icons.visibility_off,
-                            color: Colors.grey,
-                          ),
-                          onPressed: () {
-                            setState(() {
-                              _isPasswordVisible = !_isPasswordVisible;
-                            });
-                          },
-                        ),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(15),
-                          borderSide: BorderSide.none,
-                        ),
+                    _buildTextField("Password", "••••••••", _passwordController, obscureText: !_isPasswordVisible, validator: (val) {
+                      if (val == null || val.isEmpty) return 'Password wajib diisi';
+                      return null;
+                    }, suffixIcon: IconButton(
+                      icon: Icon(
+                        _isPasswordVisible ? Icons.visibility : Icons.visibility_off,
+                        color: Colors.grey,
                       ),
-                    ),
+                      onPressed: () {
+                        setState(() {
+                          _isPasswordVisible = !_isPasswordVisible;
+                        });
+                      },
+                    )),
                     Align(
                       alignment: Alignment.centerRight,
                       child: TextButton(
@@ -288,7 +262,36 @@ class _LoginScreenState extends State<LoginScreen> {
           ),
          ),
         ),
-      ),
+       ),
+    );
+  }
+  Widget _buildTextField(String label, String hint, TextEditingController controller, {bool obscureText = false, Widget? suffixIcon, String? Function(String?)? validator, void Function(String)? onChanged}) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: TextStyle(fontWeight: FontWeight.bold, color: Theme.of(context).textTheme.bodyLarge?.color),
+        ),
+        const SizedBox(height: 8),
+        TextFormField(
+          controller: controller,
+          obscureText: obscureText,
+          validator: validator,
+          onChanged: onChanged,
+          decoration: InputDecoration(
+            hintText: hint,
+            hintStyle: TextStyle(color: Colors.grey.shade400),
+            filled: true,
+            fillColor: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF2D3748) : Colors.grey.shade200,
+            suffixIcon: suffixIcon,
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(15),
+              borderSide: BorderSide.none,
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

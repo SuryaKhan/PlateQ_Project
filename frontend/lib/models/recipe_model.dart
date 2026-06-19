@@ -9,6 +9,7 @@ class Recipe {
   final int? authorId;
   final String? image;
   final String? categoryName;
+  final String? authorProfileImage;
 
   Recipe({
     required this.id, 
@@ -21,6 +22,7 @@ class Recipe {
     this.authorId,
     this.image,
     this.categoryName,
+    this.authorProfileImage,
   });
 
   factory Recipe.fromJson(Map<String, dynamic> json) {
@@ -35,6 +37,7 @@ class Recipe {
       authorRole: json['author']?['role'] ?? 'USER',
       authorId: json['author']?['id'] ?? json['authorId'],
       categoryName: json['category']?['name'],
+      authorProfileImage: json['author']?['profileImage'],
     );
   }
 }

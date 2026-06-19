@@ -4,6 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../models/recipe_model.dart';
 import '../services/recipe_service.dart';
 import '../services/auth_service.dart';
+import '../services/social_service.dart';
 import 'edit_recipe_screen.dart';
 
 class RecipeDetailScreen extends StatefulWidget {
@@ -19,11 +20,15 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
   final TextEditingController _commentController = TextEditingController();
   final FocusNode _commentFocusNode = FocusNode();
   String? _currentUsername;
+  String? _currentName;
   String? _currentUserRole;
+  int? _currentUserId;
   bool _isFavorited = false;
+  bool _isFollowing = false;
   
   int? _replyingToCommentId;
   String? _replyingToUsername;
+  String? _currentUserProfileImage;
 
   List<Map<String, dynamic>> _comments = [];
 
@@ -33,6 +38,21 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
     _loadCurrentUser();
     _fetchComments();
     _fetchBookmarkStatus();
+    _checkFollowStatus();
+  }
+
+  Future<void> _checkFollowStatus() async {
+    try {
+      final profile = await AuthService.getProfile();
+      if (profile != null && profile['following'] != null) {
+        final followingList = profile['following'] as List;
+        setState(() {
+          _isFollowing = followingList.any((f) => f['followingId'] == widget.recipe.authorId);
+        });
+      }
+    } catch (e) {
+      // Ignore
+    }
   }
 
   Future<void> _fetchBookmarkStatus() async {
@@ -60,8 +80,21 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
     final prefs = await SharedPreferences.getInstance();
     setState(() {
       _currentUsername = prefs.getString('username');
+      _currentName = prefs.getString('name');
       _currentUserRole = prefs.getString('role');
+      _currentUserId = prefs.getInt('userId');
     });
+
+    try {
+      final profile = await AuthService.getProfile();
+      if (profile != null && profile['profileImage'] != null && mounted) {
+        setState(() {
+          _currentUserProfileImage = profile['profileImage'];
+        });
+      }
+    } catch (e) {
+      // Ignore
+    }
   }
 
   Future<void> _addComment() async {
@@ -201,7 +234,7 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
     }
 
     return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      backgroundColor: Colors.transparent,
       bottomNavigationBar: Container(
         padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
         color: Theme.of(context).colorScheme.surface,
@@ -232,7 +265,16 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               child: Row(
                 children: [
-                  CircleAvatar(radius: 18, backgroundColor: Colors.grey.shade300),
+                  CircleAvatar(
+                    radius: 18, 
+                    backgroundColor: Colors.grey.shade300,
+                    backgroundImage: _currentUserProfileImage != null && _currentUserProfileImage!.isNotEmpty
+                        ? NetworkImage('http://208.76.40.81:3000/uploads/$_currentUserProfileImage')
+                        : null,
+                    child: _currentUserProfileImage == null || _currentUserProfileImage!.isEmpty
+                        ? const Icon(Icons.person, size: 20, color: Colors.grey)
+                        : null,
+                  ),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Container(
@@ -285,7 +327,7 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                       ? Hero(
                           tag: 'recipe-image-${widget.recipe.id}',
                           child: Image.network(
-                            'https://publisher-neurotic-affluent.ngrok-free.dev/uploads/${widget.recipe.image}',
+                            'http://208.76.40.81:3000/uploads/${widget.recipe.image}',
                             fit: BoxFit.cover,
                             errorBuilder: (context, error, stackTrace) => const Icon(Icons.broken_image, color: Colors.grey, size: 60),
                           ),
@@ -329,7 +371,12 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                                   CircleAvatar(
                                     radius: 12,
                                     backgroundColor: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF2D3748) : Colors.grey.shade300,
-                                    child: const Icon(Icons.person, size: 16, color: Colors.grey),
+                                    backgroundImage: widget.recipe.authorProfileImage != null && widget.recipe.authorProfileImage!.isNotEmpty
+                                        ? NetworkImage('http://208.76.40.81:3000/uploads/${widget.recipe.authorProfileImage!}')
+                                        : null,
+                                    child: widget.recipe.authorProfileImage == null || widget.recipe.authorProfileImage!.isEmpty
+                                        ? const Icon(Icons.person, size: 16, color: Colors.grey)
+                                        : null,
                                   ),
                                   const SizedBox(width: 8),
                                   Text(
@@ -358,16 +405,37 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                                   children: [
                                     Expanded(
                                       child: ElevatedButton.icon(
-                                        onPressed: () {
-                                          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                                            content: Text("Berhasil mengikuti pengguna! Notifikasi telah dikirim."),
-                                            backgroundColor: Colors.green,
-                                          ));
+                                        onPressed: () async {
+                                          if (widget.recipe.authorId == null) return;
+                                          try {
+                                            final res = await SocialService.toggleFollow(widget.recipe.authorId!);
+                                            if (!context.mounted) return;
+                                            setState(() {
+                                              if (res['message'] == 'Followed successfully.') {
+                                                _isFollowing = true;
+                                                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                                                  content: Text("Berhasil mengikuti pengguna!"),
+                                                  backgroundColor: Colors.green,
+                                                ));
+                                              } else {
+                                                _isFollowing = false;
+                                                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                                                  content: Text("Batal mengikuti pengguna."),
+                                                ));
+                                              }
+                                            });
+                                          } catch (e) {
+                                            if (!context.mounted) return;
+                                            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                                              content: Text("Gagal: $e"),
+                                              backgroundColor: Colors.red,
+                                            ));
+                                          }
                                         },
-                                        icon: const Icon(Icons.person_add, size: 16),
-                                        label: const Text("Ikuti", style: TextStyle(fontWeight: FontWeight.bold)),
+                                        icon: Icon(_isFollowing ? Icons.check : Icons.person_add, size: 16),
+                                        label: Text(_isFollowing ? "Diikuti" : "Ikuti", style: const TextStyle(fontWeight: FontWeight.bold)),
                                         style: ElevatedButton.styleFrom(
-                                          backgroundColor: const Color(0xFF1E293B),
+                                          backgroundColor: _isFollowing ? Colors.green : const Color(0xFF1E293B),
                                           foregroundColor: Colors.white,
                                           elevation: 0,
                                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
@@ -629,7 +697,10 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
-                    if (_currentUsername != null && widget.recipe.authorName == _currentUsername)
+                    if (_currentUserRole == 'ADMIN' || _currentUserRole == 'SUPERADMIN' ||
+                        (_currentUserId != null && widget.recipe.authorId == _currentUserId) ||
+                        (_currentUsername != null && widget.recipe.authorName == _currentUsername) ||
+                        (_currentName != null && widget.recipe.authorName == _currentName))
                       Row(
                         children: [
                           Container(

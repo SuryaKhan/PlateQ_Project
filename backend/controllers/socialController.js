@@ -36,6 +36,42 @@ exports.toggleFollow = async (req, res) => {
   }
 };
 
+exports.getFollowers = async (req, res) => {
+  try {
+    const userId = parseInt(req.params.id);
+    const follows = await prisma.follow.findMany({
+      where: { followingId: userId },
+      include: {
+        follower: {
+          select: { id: true, username: true, name: true, profileImage: true, role: true }
+        }
+      }
+    });
+    const followers = follows.map(f => f.follower);
+    res.json(followers);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+exports.getFollowing = async (req, res) => {
+  try {
+    const userId = parseInt(req.params.id);
+    const follows = await prisma.follow.findMany({
+      where: { followerId: userId },
+      include: {
+        following: {
+          select: { id: true, username: true, name: true, profileImage: true, role: true }
+        }
+      }
+    });
+    const following = follows.map(f => f.following);
+    res.json(following);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
 // 2. COOKSNAPS
 exports.uploadCooksnap = async (req, res) => {
   try {
@@ -140,6 +176,25 @@ exports.markNotificationsAsRead = async (req, res) => {
       data: { isRead: true }
     });
     res.json({ message: "Notifications marked as read" });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+exports.deleteNotification = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const userId = req.user.userId;
+
+    const notif = await prisma.notification.findUnique({ where: { id: parseInt(id) } });
+    if (!notif) return res.status(404).json({ error: "Notifikasi tidak ditemukan." });
+
+    if (notif.userId !== userId) {
+      return res.status(403).json({ error: "Anda tidak berhak menghapus notifikasi ini." });
+    }
+
+    await prisma.notification.delete({ where: { id: parseInt(id) } });
+    res.json({ message: "Notifikasi berhasil dihapus." });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }

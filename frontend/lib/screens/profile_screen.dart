@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
+import '../services/social_service.dart';
+import 'followers_screen.dart';
 import 'login_screen.dart';
 import 'edit_profile_screen.dart';
 import '../models/recipe_model.dart';
@@ -95,9 +97,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
     )).toList();
 
     return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      backgroundColor: Colors.transparent,
       appBar: AppBar(
-        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+        backgroundColor: Colors.transparent,
         elevation: 0,
         leading: Padding(
           padding: const EdgeInsets.only(left: 16.0),
@@ -150,7 +152,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       radius: 55,
                       backgroundColor: const Color(0xFFE2E8F0),
                       backgroundImage: user['profileImage'] != null 
-                          ? NetworkImage('https://publisher-neurotic-affluent.ngrok-free.dev/uploads/${user['profileImage']}') 
+                          ? NetworkImage('http://208.76.40.81:3000/uploads/${user['profileImage']}') 
                           : null,
                       child: user['profileImage'] == null 
                           ? const Icon(Icons.person, size: 55, color: Colors.grey) 
@@ -184,13 +186,35 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Text("${user['followers'] ?? 0}", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Theme.of(context).textTheme.bodyLarge?.color)),
-                      const SizedBox(width: 4),
-                      const Text("Followers", style: TextStyle(color: Colors.grey, fontSize: 13)),
+                      GestureDetector(
+                        onTap: () {
+                          Navigator.push(context, MaterialPageRoute(
+                            builder: (context) => FollowersScreen(userId: user['id'], initialTab: 'followers'),
+                          ));
+                        },
+                        child: Row(
+                          children: [
+                            Text("${user['followers'] ?? 0}", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Theme.of(context).textTheme.bodyLarge?.color)),
+                            const SizedBox(width: 4),
+                            const Text("Followers", style: TextStyle(color: Colors.grey, fontSize: 13)),
+                          ],
+                        ),
+                      ),
                       const SizedBox(width: 20),
-                      Text("${user['following'] ?? 0}", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Theme.of(context).textTheme.bodyLarge?.color)),
-                      const SizedBox(width: 4),
-                      const Text("Following", style: TextStyle(color: Colors.grey, fontSize: 13)),
+                      GestureDetector(
+                        onTap: () {
+                          Navigator.push(context, MaterialPageRoute(
+                            builder: (context) => FollowersScreen(userId: user['id'], initialTab: 'following'),
+                          ));
+                        },
+                        child: Row(
+                          children: [
+                            Text("${user['following'] ?? 0}", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Theme.of(context).textTheme.bodyLarge?.color)),
+                            const SizedBox(width: 4),
+                            const Text("Following", style: TextStyle(color: Colors.grey, fontSize: 13)),
+                          ],
+                        ),
+                      ),
                     ],
                   ),
                   const SizedBox(height: 12),
@@ -444,7 +468,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         shape: BoxShape.circle,
                         image: _profileData!['profileImage'] != null 
                             ? DecorationImage(
-                                image: NetworkImage('https://publisher-neurotic-affluent.ngrok-free.dev/uploads/${_profileData!['profileImage']}'),
+                                image: NetworkImage('http://208.76.40.81:3000/uploads/${_profileData!['profileImage']}'),
                                 fit: BoxFit.cover,
                               )
                             : null,
@@ -514,7 +538,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(20),
                   child: Image.network(
-                    'https://publisher-neurotic-affluent.ngrok-free.dev/uploads/${recipe.image}',
+                    'http://208.76.40.81:3000/uploads/${recipe.image}',
                     fit: BoxFit.cover,
                     colorBlendMode: BlendMode.darken,
                     color: Colors.black.withAlpha(80),

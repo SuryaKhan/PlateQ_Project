@@ -3,6 +3,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import '../widgets/update_dialog.dart';
+import '../services/auth_service.dart';
+import 'public_profile_screen.dart';
 
 class NotificationScreen extends StatefulWidget {
   const NotificationScreen({super.key});
@@ -27,7 +29,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
       final token = prefs.getString('jwt_token') ?? '';
       
       final response = await http.get(
-        Uri.parse('https://publisher-neurotic-affluent.ngrok-free.dev/api/social/notifications'),
+        Uri.parse('http://208.76.40.81:3000/api/social/notifications'),
         headers: {'ngrok-skip-browser-warning': 'true', 'Authorization': 'Bearer $token'}
       );
 
@@ -56,7 +58,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
     if (token.isNotEmpty) {
       try {
         await http.put(
-          Uri.parse('https://publisher-neurotic-affluent.ngrok-free.dev/api/social/notifications/read'),
+          Uri.parse('http://208.76.40.81:3000/api/social/notifications/read'),
           headers: {'ngrok-skip-browser-warning': 'true', 'Authorization': 'Bearer $token'}
         );
       } catch (e) {
@@ -77,12 +79,36 @@ class _NotificationScreenState extends State<NotificationScreen> {
     }
   }
 
+  Future<void> _navigateToUserProfile(String username) async {
+    setState(() => _isLoading = true);
+    try {
+      final profileData = await AuthService.getPublicProfileByUsername(username);
+      if (profileData != null && mounted) {
+        setState(() => _isLoading = false);
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => PublicProfileScreen(userId: profileData['id'])),
+        );
+      } else {
+        if (mounted) {
+          setState(() => _isLoading = false);
+          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Profil tidak ditemukan")));
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isLoading = false);
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Gagal membuka profil")));
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      backgroundColor: Colors.transparent,
       appBar: AppBar(
-        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+        backgroundColor: Colors.transparent,
         elevation: 0,
         leading: Padding(
           padding: const EdgeInsets.only(left: 16.0),
@@ -175,112 +201,154 @@ class _NotificationScreenState extends State<NotificationScreen> {
         iconColor = Colors.grey;
     }
 
-    return InkWell(
-      onTap: () {
-        final messageText = notif["message"] ?? 'Ada pemberitahuan baru!';
-        if (messageText.contains('[UPDATE APK]')) {
-          showDialog(
-            context: context,
-            builder: (context) => const UpdateDialog(),
+    return Dismissible(
+      key: Key(notif["id"].toString()),
+      direction: DismissDirection.endToStart,
+      onDismissed: (direction) async {
+        final prefs = await SharedPreferences.getInstance();
+        final token = prefs.getString('jwt_token') ?? '';
+        
+        try {
+          await http.delete(
+            Uri.parse('http://208.76.40.81:3000/api/social/notifications/${notif["id"]}'),
+            headers: {'ngrok-skip-browser-warning': 'true', 'Authorization': 'Bearer $token'}
           );
-        } else if (type.contains('ANNOUNCEMENT')) {
-          String titleStr = "Pemberitahuan Baru";
-          if (type == 'SUPERADMIN_ANNOUNCEMENT') {
-            titleStr = "📢 Pengumuman Penting!";
-          } else if (type == 'ADMIN_ANNOUNCEMENT' || type == 'ANNOUNCEMENT') {
-            titleStr = "ℹ️ Pengumuman";
-          }
-
-          showDialog(
-            context: context,
-            builder: (context) => AlertDialog(
-              title: Text(titleStr, style: const TextStyle(fontWeight: FontWeight.bold)),
-              content: Text(messageText.replaceAll('[INFO]', '').replaceAll('[EVENT]', '').trim()),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.pop(context),
-                  child: const Text("Tutup"),
-                ),
-              ],
-            )
+        } catch (e) {
+          debugPrint("Error delete notif: $e");
+        }
+        
+        setState(() {
+          notifications.removeWhere((n) => n["id"] == notif["id"]);
+        });
+        
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text("Notifikasi berhasil dihapus")),
           );
         }
       },
-      borderRadius: BorderRadius.circular(15),
-      child: Container(
+      background: Container(
+        alignment: Alignment.centerRight,
+        padding: const EdgeInsets.only(right: 20),
         margin: const EdgeInsets.only(bottom: 16),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: notif["isRead"] ? Theme.of(context).colorScheme.surface : (Theme.of(context).brightness == Brightness.dark ? const Color(0xFF1E293B) : const Color(0xFFEFF6FF)),
-        borderRadius: BorderRadius.circular(15),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withAlpha(Theme.of(context).brightness == Brightness.dark ? 20 : 5),
-            blurRadius: 10,
-            offset: const Offset(0, 5),
-          ),
-        ],
-        border: notif["isRead"] ? null : Border.all(color: Colors.blue.withAlpha(50)),
+        decoration: BoxDecoration(
+          color: Colors.red,
+          borderRadius: BorderRadius.circular(15),
+        ),
+        child: const Icon(Icons.delete, color: Colors.white),
       ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Stack(
-            clipBehavior: Clip.none,
-            children: [
-              CircleAvatar(
-                radius: 24,
-                backgroundColor: Colors.grey.shade300,
-                child: const Icon(Icons.person, color: Colors.grey),
-              ),
-              Positioned(
-                bottom: -4,
-                right: -4,
-                child: Container(
-                  padding: const EdgeInsets.all(4),
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.surface,
-                    shape: BoxShape.circle,
+      child: InkWell(
+        onTap: () {
+          final messageText = notif["message"] ?? 'Ada pemberitahuan baru!';
+          if (messageText.contains('[UPDATE APK]')) {
+            showDialog(
+              context: context,
+              builder: (context) => const UpdateDialog(),
+            );
+          } else if (type.contains('ANNOUNCEMENT')) {
+            String titleStr = "Pemberitahuan Baru";
+            if (type == 'SUPERADMIN_ANNOUNCEMENT') {
+              titleStr = "📢 Pengumuman Penting!";
+            } else if (type == 'ADMIN_ANNOUNCEMENT' || type == 'ANNOUNCEMENT') {
+              titleStr = "ℹ️ Pengumuman";
+            }
+
+            showDialog(
+              context: context,
+              builder: (context) => AlertDialog(
+                title: Text(titleStr, style: const TextStyle(fontWeight: FontWeight.bold)),
+                content: Text(messageText.replaceAll('[INFO]', '').replaceAll('[EVENT]', '').trim()),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.pop(context),
+                    child: const Text("Tutup"),
                   ),
-                  child: Icon(iconData, size: 12, color: iconColor),
-                ),
+                ],
               )
-            ],
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+            );
+          } else if (type == 'FOLLOW') {
+            final username = messageText.split(' ').first;
+            if (username.isNotEmpty) {
+              _navigateToUserProfile(username);
+            }
+          }
+        },
+        borderRadius: BorderRadius.circular(15),
+        child: Container(
+          margin: const EdgeInsets.only(bottom: 16),
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: notif["isRead"] ? Theme.of(context).colorScheme.surface : (Theme.of(context).brightness == Brightness.dark ? const Color(0xFF1E293B) : const Color(0xFFEFF6FF)),
+          borderRadius: BorderRadius.circular(15),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withAlpha(Theme.of(context).brightness == Brightness.dark ? 20 : 5),
+              blurRadius: 10,
+              offset: const Offset(0, 5),
+            ),
+          ],
+          border: notif["isRead"] ? null : Border.all(color: Colors.blue.withAlpha(50)),
+        ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Stack(
+              clipBehavior: Clip.none,
               children: [
-                RichText(
-                  text: TextSpan(
-                    style: TextStyle(color: Theme.of(context).textTheme.bodyLarge?.color, fontSize: 14, height: 1.4),
-                    children: [
-                      TextSpan(text: notif["message"]),
-                    ],
+                CircleAvatar(
+                  radius: 24,
+                  backgroundColor: Colors.grey.shade300,
+                  child: const Icon(Icons.person, color: Colors.grey),
+                ),
+                Positioned(
+                  bottom: -4,
+                  right: -4,
+                  child: Container(
+                    padding: const EdgeInsets.all(4),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).colorScheme.surface,
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(iconData, size: 12, color: iconColor),
                   ),
-                ),
-                const SizedBox(height: 6),
-                Text(
-                  "Beberapa waktu yang lalu", // To do: add date formatting
-                  style: const TextStyle(color: Color(0xFF94A3B8), fontSize: 12),
-                ),
+                )
               ],
             ),
-          ),
-          if (!notif["isRead"])
-            Container(
-              margin: const EdgeInsets.only(top: 8, left: 8),
-              width: 8,
-              height: 8,
-              decoration: const BoxDecoration(
-                color: Colors.blueAccent,
-                shape: BoxShape.circle,
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  RichText(
+                    text: TextSpan(
+                      style: TextStyle(color: Theme.of(context).textTheme.bodyLarge?.color, fontSize: 14, height: 1.4),
+                      children: [
+                        TextSpan(text: notif["message"]),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    "Beberapa waktu yang lalu", // To do: add date formatting
+                    style: const TextStyle(color: Color(0xFF94A3B8), fontSize: 12),
+                  ),
+                ],
               ),
-            )
-        ],
-      ),
-    ));
+            ),
+            if (!notif["isRead"])
+              Container(
+                margin: const EdgeInsets.only(top: 8, left: 8),
+                width: 8,
+                height: 8,
+                decoration: const BoxDecoration(
+                  color: Colors.blueAccent,
+                  shape: BoxShape.circle,
+                ),
+              )
+          ],
+        ),
+      ))
+    );
   }
 }

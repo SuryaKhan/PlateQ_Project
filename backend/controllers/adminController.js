@@ -23,12 +23,12 @@ exports.createAnnouncement = async (req, res) => {
     const notifType = isSuperAdmin ? "SUPERADMIN_ANNOUNCEMENT" : "ADMIN_ANNOUNCEMENT";
     const senderTitle = isSuperAdmin ? "Super Admin" : "Admin";
 
-    const categoryTitle = category === 'UPDATE_APK' ? '[UPDATE APK]' : category === 'EVENT' ? '[EVENT]' : '[INFO]';
+    const categoryTitle = category === 'UPDATE_APK' ? '[UPDATE APK]' : category === 'MAINTENANCE' ? '[MAINTENANCE]' : category === 'EVENT' ? '[EVENT]' : '[INFO]';
 
     const notifications = allUsers.map(u => ({
       userId: u.id,
       type: notifType,
-      message: `${categoryTitle} Pengumuman dari ${senderTitle}: ${title}`
+      message: `${categoryTitle} ${title}\n\n${content}`
     }));
     await prisma.notification.createMany({ data: notifications });
 
@@ -50,6 +50,51 @@ exports.getAnnouncements = async (req, res) => {
   } catch (error) {
     console.error("❌ ERROR GET ANNOUNCEMENTS:", error);
     res.status(500).json({ error: "Gagal mengambil daftar pengumuman." });
+  }
+};
+
+// 2.5 HAPUS PENGUMUMAN
+exports.deleteAnnouncement = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const userId = req.user.userId;
+
+    const user = await prisma.user.findUnique({ where: { id: userId } });
+    if (!user || (user.role !== 'ADMIN' && user.role !== 'SUPERADMIN')) {
+      return res.status(403).json({ error: "Akses ditolak!" });
+    }
+
+    const announcement = await prisma.announcement.findUnique({ where: { id: parseInt(id) } });
+    if (!announcement) {
+      return res.status(404).json({ error: "Pengumuman tidak ditemukan." });
+    }
+
+    // Hanya Superadmin yang bisa menghapus pengumuman superadmin
+    if (announcement.authorId !== userId && user.role !== 'SUPERADMIN') {
+      return res.status(403).json({ error: "Anda tidak bisa menghapus pengumuman ini." });
+    }
+
+    // Delete related notifications
+    await prisma.notification.deleteMany({
+      where: {
+        OR: [
+          { type: 'SUPERADMIN_ANNOUNCEMENT' },
+          { type: 'ADMIN_ANNOUNCEMENT' },
+          { type: 'ANNOUNCEMENT' }
+        ],
+        message: {
+          contains: announcement.title
+        }
+      }
+    });
+
+    // Delete announcement
+    await prisma.announcement.delete({ where: { id: parseInt(id) } });
+
+    res.json({ message: "Pengumuman dan notifikasinya berhasil dihapus!" });
+  } catch (error) {
+    console.error("❌ ERROR DELETE ANNOUNCEMENT:", error);
+    res.status(500).json({ error: "Gagal menghapus pengumuman." });
   }
 };
 

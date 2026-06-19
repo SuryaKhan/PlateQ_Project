@@ -5,9 +5,11 @@ import 'package:flutter/foundation.dart';
 
 class AuthService {
   // Base URL untuk Auth
-  static const String authUrl = 'https://publisher-neurotic-affluent.ngrok-free.dev/api/auth';
+  static const String authUrl = 'http://208.76.40.81:3000/api/auth';
   // Base URL untuk User Profile
-  static const String userUrl = 'https://publisher-neurotic-affluent.ngrok-free.dev/api/users';
+  static const String userUrl = 'http://208.76.40.81:3000/api/users';
+
+  static String lastError = '';
 
   // ==========================================
   // 1. FUNGSI REGISTER (DAFTAR)
@@ -46,8 +48,12 @@ class AuthService {
     try {
       final response = await http.post(
         Uri.parse('$authUrl/login'),
-        headers: {'ngrok-skip-browser-warning': 'true', 'Content-Type': 'application/json'},
-        body: jsonEncode({'username': username, 'password': password}),
+        headers: {
+          'ngrok-skip-browser-warning': 'true', 
+          'Content-Type': 'application/json',
+          'User-Agent': 'PlateQApp/1.0'
+        },
+        body: jsonEncode({'username': username.trim(), 'password': password.trim()}),
       );
 
       debugPrint("--- LOGIN LOG ---");
@@ -56,22 +62,28 @@ class AuthService {
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         String token = data['token'];
-        String? role = data['user']['role']; // Dapatkan role dari response jika ada
+        String? role = data['user']['role'];
+        String? username = data['user']['username'];
+        String? name = data['user']['name'];
+        int? id = data['user']['id'];
 
         // Simpan token ke brankas lokal (SharedPreferences)
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString('jwt_token', token);
-        if (role != null) {
-          await prefs.setString('role', role);
-        }
+        if (role != null) await prefs.setString('role', role);
+        if (username != null) await prefs.setString('username', username);
+        if (name != null) await prefs.setString('name', name);
+        if (id != null) await prefs.setInt('userId', id);
 
         return true;
       } else {
-        debugPrint("Gagal Login: ${response.body}");
+        lastError = "Gagal Login: ${response.body}";
+        debugPrint(lastError);
         return false;
       }
     } catch (e) {
-      debugPrint("❌ Error Pas Login: $e");
+      lastError = "❌ Network/Exception: $e";
+      debugPrint(lastError);
       return false;
     }
   }
@@ -167,6 +179,31 @@ class AuthService {
       return null;
     } catch (e) {
       debugPrint("❌ Error Ambil Profil Publik: $e");
+      return null;
+    }
+  }
+
+  static Future<Map<String, dynamic>?> getPublicProfileByUsername(String username) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('jwt_token');
+
+      if (token == null) return null;
+
+      final response = await http.get(
+        Uri.parse('$userUrl/profile/username/$username'),
+        headers: {'ngrok-skip-browser-warning': 'true', 
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      }
+      return null;
+    } catch (e) {
+      debugPrint("❌ Error Ambil Profil Publik Username: $e");
       return null;
     }
   }

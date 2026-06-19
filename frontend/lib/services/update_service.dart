@@ -5,7 +5,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../core/config/app_config.dart';
 
 class UpdateService {
-  static const String baseUrl = 'https://publisher-neurotic-affluent.ngrok-free.dev/api/app';
+  static const String baseUrl = 'http://208.76.40.81:3000/api/app';
 
   static Future<void> checkUpdate(BuildContext context) async {
     try {

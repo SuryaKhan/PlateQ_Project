@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
 import '../models/recipe_model.dart';
 import 'recipe_detail_screen.dart';
+import 'followers_screen.dart';
 
 class PublicProfileScreen extends StatefulWidget {
   final int userId;
@@ -55,7 +56,7 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
     int columns = MediaQuery.of(context).size.width > 1200 ? 5 : (MediaQuery.of(context).size.width > 800 ? 4 : (MediaQuery.of(context).size.width > 600 ? 3 : 2));
 
     return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      backgroundColor: Colors.transparent,
       appBar: AppBar(
         elevation: 0,
         backgroundColor: Colors.transparent,
@@ -80,7 +81,7 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
                         radius: 55,
                         backgroundColor: const Color(0xFFE2E8F0),
                         backgroundImage: user['profileImage'] != null
-                            ? NetworkImage('https://publisher-neurotic-affluent.ngrok-free.dev/uploads/${user['profileImage']}')
+                            ? NetworkImage('http://208.76.40.81:3000/uploads/${user['profileImage']}')
                             : null,
                         child: user['profileImage'] == null
                             ? const Icon(Icons.person, size: 55, color: Colors.grey)
@@ -116,9 +117,17 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
                         children: [
                           _buildStatItem("Resep", recipes.length.toString()),
                           const SizedBox(width: 20),
-                          _buildStatItem("Pengikut", user['followersCount'].toString()),
+                          _buildStatItem("Pengikut", user['followersCount'].toString(), onTap: () {
+                            Navigator.push(context, MaterialPageRoute(
+                              builder: (context) => FollowersScreen(userId: user['id'], initialTab: 'followers'),
+                            ));
+                          }),
                           const SizedBox(width: 20),
-                          _buildStatItem("Mengikuti", user['followingCount'].toString()),
+                          _buildStatItem("Mengikuti", user['followingCount'].toString(), onTap: () {
+                            Navigator.push(context, MaterialPageRoute(
+                              builder: (context) => FollowersScreen(userId: user['id'], initialTab: 'following'),
+                            ));
+                          }),
                         ],
                       ),
                       const SizedBox(height: 24),
@@ -172,8 +181,8 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
     );
   }
 
-  Widget _buildStatItem(String label, String value) {
-    return Column(
+  Widget _buildStatItem(String label, String value, {VoidCallback? onTap}) {
+    final child = Column(
       children: [
         Text(
           value,
@@ -185,6 +194,11 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
         ),
       ],
     );
+    
+    if (onTap != null) {
+      return GestureDetector(onTap: onTap, child: child);
+    }
+    return child;
   }
 
   Widget _buildGridCard(Recipe recipe) {
@@ -219,7 +233,7 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
                     ),
                     child: recipe.image != null
                         ? Image.network(
-                            'https://publisher-neurotic-affluent.ngrok-free.dev/uploads/${recipe.image}',
+                            'http://208.76.40.81:3000/uploads/${recipe.image}',
                             fit: BoxFit.cover,
                           )
                         : Container(color: Theme.of(context).colorScheme.surfaceContainerHighest),

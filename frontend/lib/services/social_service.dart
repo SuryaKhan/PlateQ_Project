@@ -3,7 +3,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 
 class SocialService {
-  static const String baseUrl = 'https://publisher-neurotic-affluent.ngrok-free.dev/api/social';
+  static const String baseUrl = 'http://208.76.40.81:3000/api/social';
 
   static Future<Map<String, dynamic>> toggleFollow(int userId) async {
     final prefs = await SharedPreferences.getInstance();
@@ -25,5 +25,45 @@ class SocialService {
       final body = jsonDecode(response.body);
       throw Exception(body['error'] ?? 'Failed to toggle follow');
     }
+  }
+
+  static Future<List<Map<String, dynamic>>> getFollowers(int userId) async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('jwt_token');
+    
+    if (token == null) return [];
+
+    final response = await http.get(
+      Uri.parse('$baseUrl/users/$userId/followers'),
+      headers: {
+        'ngrok-skip-browser-warning': 'true',
+        'Authorization': 'Bearer $token',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      return List<Map<String, dynamic>>.from(jsonDecode(response.body));
+    }
+    return [];
+  }
+
+  static Future<List<Map<String, dynamic>>> getFollowing(int userId) async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('jwt_token');
+    
+    if (token == null) return [];
+
+    final response = await http.get(
+      Uri.parse('$baseUrl/users/$userId/following'),
+      headers: {
+        'ngrok-skip-browser-warning': 'true',
+        'Authorization': 'Bearer $token',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      return List<Map<String, dynamic>>.from(jsonDecode(response.body));
+    }
+    return [];
   }
 }

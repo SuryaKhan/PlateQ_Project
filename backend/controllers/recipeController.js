@@ -59,12 +59,9 @@ const getAllRecipes = async (req, res) => {
       filter.categoryId = parseInt(categoryId);
     }
 
-    // Jika ada pencarian kata kunci di judul atau konten resep
+    // Jika ada pencarian kata kunci di judul resep
     if (search) {
-      filter.OR = [
-        { title: { contains: search, mode: 'insensitive' } },
-        { content: { contains: search, mode: 'insensitive' } }
-      ];
+      filter.title = { contains: search };
     }
 
     const pageNum = parseInt(page) || 1;
@@ -96,13 +93,16 @@ const getAllRecipes = async (req, res) => {
 const updateRecipe = async (req, res) => {
   try {
     const { id } = req.params;
-    const { title, content, difficulty, cookingTime, category } = req.body;
+    const { title, content, difficulty, cookingTime, category, categoryId } = req.body;
     const userId = req.user.userId;
 
     const existingRecipe = await prisma.recipe.findUnique({ where: { id: parseInt(id) } });
     if (!existingRecipe) return res.status(404).json({ error: "Resep nggak ketemu bro!" });
 
-    if (existingRecipe.authorId !== userId) {
+    const user = await prisma.user.findUnique({ where: { id: userId } });
+    const isAdmin = user && (user.role === 'ADMIN' || user.role === 'SUPERADMIN');
+
+    if (existingRecipe.authorId !== userId && !isAdmin) {
       return res.status(403).json({ error: "Eits, nggak bisa edit resep orang lain!" });
     }
 
@@ -110,8 +110,21 @@ const updateRecipe = async (req, res) => {
     const newImage = req.file ? req.file.filename : existingRecipe.image;
 
     let categoryIdToSave = existingRecipe.categoryId;
-    if (category && !isNaN(parseInt(category))) {
+    if (categoryId && !isNaN(parseInt(categoryId))) {
+      categoryIdToSave = parseInt(categoryId);
+    } else if (category && !isNaN(parseInt(category))) {
       categoryIdToSave = parseInt(category);
+    }
+
+    // --- CEGAH ERROR P2003 (Kategori belum ada di database RDP) ---
+    if (categoryIdToSave) {
+      const checkCat = await prisma.category.findUnique({ where: { id: categoryIdToSave } });
+      if (!checkCat) {
+        let catName = 'Makanan';
+        if (categoryIdToSave === 3) catName = 'Minuman';
+        if (categoryIdToSave === 4) catName = 'Dessert';
+        await prisma.category.create({ data: { id: categoryIdToSave, name: catName } });
+      }
     }
 
     const updatedRecipe = await prisma.recipe.update({
@@ -142,9 +155,26 @@ const deleteRecipe = async (req, res) => {
     const existingRecipe = await prisma.recipe.findUnique({ where: { id: parseInt(id) } });
     if (!existingRecipe) return res.status(404).json({ error: "Resep nggak ketemu bro!" });
 
-    if (existingRecipe.authorId !== userId) {
+    const user = await prisma.user.findUnique({ where: { id: userId } });
+    const isAdmin = user && (user.role === 'ADMIN' || user.role === 'SUPERADMIN');
+
+    if (existingRecipe.authorId !== userId && !isAdmin) {
       return res.status(403).json({ error: "Eits, nggak bisa hapus resep orang lain!" });
     }
+
+    // Hapus data terkait terlebih dahulu karena Prisma schema tidak pakai onDelete: Cascade
+    // Ambil semua komentar untuk resep ini dulu
+    const comments = await prisma.comment.findMany({ where: { recipeId: parseInt(id) } });
+    const commentIds = comments.map(c => c.id);
+    // Hapus balasannya (child comments) dulu supaya nggak error foreign key
+    if (commentIds.length > 0) {
+       await prisma.comment.deleteMany({ where: { parentId: { in: commentIds } } });
+    }
+    
+    await prisma.comment.deleteMany({ where: { recipeId: parseInt(id) } });
+    await prisma.like.deleteMany({ where: { recipeId: parseInt(id) } });
+    await prisma.cooksnap.deleteMany({ where: { recipeId: parseInt(id) } });
+    await prisma.collectionItem.deleteMany({ where: { recipeId: parseInt(id) } });
 
     await prisma.recipe.delete({ where: { id: parseInt(id) } });
     res.json({ message: "Resep berhasil dihapus!" });

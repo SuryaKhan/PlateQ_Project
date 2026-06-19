@@ -137,9 +137,9 @@ class _AddRecipeScreenState extends State<AddRecipeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Theme.of(context).colorScheme.surface,
+      backgroundColor: Colors.transparent,
       appBar: AppBar(
-        backgroundColor: Theme.of(context).colorScheme.surface,
+        backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
           icon: Icon(
@@ -154,7 +154,7 @@ class _AddRecipeScreenState extends State<AddRecipeScreen> {
           },
         ),
         title: Text(
-          "New Recipe",
+          "Resep Baru",
           style: TextStyle(
             color: Theme.of(context).textTheme.bodyLarge?.color,
             fontSize: 16,
@@ -172,7 +172,7 @@ class _AddRecipeScreenState extends State<AddRecipeScreen> {
                     child: CircularProgressIndicator(strokeWidth: 2),
                   )
                 : Text(
-                    "Post",
+                    "Kirim",
                     style: TextStyle(
                       color: Theme.of(context).textTheme.bodyLarge?.color,
                       fontWeight: FontWeight.bold,
@@ -226,7 +226,7 @@ class _AddRecipeScreenState extends State<AddRecipeScreen> {
                                 ),
                                 SizedBox(height: 12),
                                 Text(
-                                  "Add a cover photo",
+                                  "Tambah foto sampul",
                                   style: TextStyle(
                                     color: Color(0xFF4A4A4A),
                                     fontSize: 16,
@@ -241,26 +241,26 @@ class _AddRecipeScreenState extends State<AddRecipeScreen> {
                 const SizedBox(height: 24),
 
                 // Recipe Title
-                _buildSectionTitle("RECIPE TITLE"),
+                _buildSectionTitle("JUDUL RESEP"),
                 const SizedBox(height: 8),
                 _buildTextField(
-                  "e.g. Saffron Infused Creamy Risotto",
+                  "Contoh: Nasi Goreng Spesial",
                   _titleController,
                 ),
                 const SizedBox(height: 24),
 
                 // Short Description
-                _buildSectionTitle("SHORT DESCRIPTION"),
+                _buildSectionTitle("DESKRIPSI SINGKAT"),
                 const SizedBox(height: 8),
                 _buildTextField(
-                  "Share the story behind this dish...",
+                  "Ceritakan kisah di balik resep ini...",
                   _descController,
                   maxLines: 4,
                 ),
                 const SizedBox(height: 24),
 
                 // Category
-                _buildSectionTitle("CATEGORY"),
+                _buildSectionTitle("KATEGORI"),
                 const SizedBox(height: 8),
                 Wrap(
                   spacing: 8.0,
@@ -301,7 +301,7 @@ class _AddRecipeScreenState extends State<AddRecipeScreen> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      "Ingredients",
+                      "Bahan-bahan",
                       style: TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
@@ -311,7 +311,7 @@ class _AddRecipeScreenState extends State<AddRecipeScreen> {
                     GestureDetector(
                       onTap: _addIngredientRow,
                       child: Text(
-                        "+ Add Item",
+                        "+ Tambah Bahan",
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
                           color: Theme.of(context).textTheme.bodyLarge?.color,
@@ -330,13 +330,13 @@ class _AddRecipeScreenState extends State<AddRecipeScreen> {
                       children: [
                         Expanded(
                           flex: 1,
-                          child: _buildTextField("Quantity", ing["qty"]!),
+                          child: _buildTextField("Takaran", ing["qty"]!),
                         ),
                         const SizedBox(width: 12),
                         Expanded(
                           flex: 2,
                           child: _buildTextField(
-                            "Ingredient name...",
+                            "Nama bahan...",
                             ing["name"]!,
                           ),
                         ),
@@ -359,7 +359,7 @@ class _AddRecipeScreenState extends State<AddRecipeScreen> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      "Cooking Steps",
+                      "Langkah Memasak",
                       style: TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
@@ -377,7 +377,7 @@ class _AddRecipeScreenState extends State<AddRecipeScreen> {
                           ),
                           const SizedBox(width: 4),
                           Text(
-                            "Add Step",
+                            "Tambah Langkah",
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
                               color: Theme.of(
@@ -422,7 +422,7 @@ class _AddRecipeScreenState extends State<AddRecipeScreen> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               _buildTextField(
-                                "Describe the step...",
+                                "Deskripsikan langkah...",
                                 controller,
                                 maxLines: 3,
                               ),
@@ -452,18 +452,18 @@ class _AddRecipeScreenState extends State<AddRecipeScreen> {
                   children: [
                     Expanded(
                       child: _buildInfoBox(
-                        "PREP TIME",
+                        "WAKTU PERSIAPAN",
                         Icons.access_time,
-                        "15 min",
+                        "15 menit",
                         _prepTimeController,
                       ),
                     ),
                     const SizedBox(width: 16),
                     Expanded(
                       child: _buildInfoBox(
-                        "SERVINGS",
+                        "PORSI",
                         Icons.people,
-                        "2 people",
+                        "2 porsi",
                         _servingsController,
                       ),
                     ),
@@ -595,3 +595,5 @@ class _AddRecipeScreenState extends State<AddRecipeScreen> {
     );
   }
 }
+
+
